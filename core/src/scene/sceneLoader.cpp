@@ -1332,7 +1332,7 @@ SceneLayer SceneLoader::loadSublayer(Node layer, const std::string& name, Scene&
             // TODO: ignored for now
         } else {
             // Member is a sublayer
-            sublayers.push_back(loadSublayer(member.second, key, scene));
+            sublayers.push_back(loadSublayer(member.second, (name + ":" + key), scene));
         }
     }
 
