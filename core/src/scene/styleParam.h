@@ -137,6 +137,8 @@ struct StyleParam {
     static bool isRequired(StyleParamKey _key);
 
     static StyleParamKey getKey(const std::string& _key);
+
+    static const std::string& keyName(StyleParamKey _key);
 };
 
 }
