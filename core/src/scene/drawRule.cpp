@@ -13,6 +13,26 @@
 
 namespace Tangram {
 
+struct RuleTieHandler {
+
+    RuleTieHandler(int d, const std::string& n) : currentDepth(d), currentLayerName(n.c_str()) {}
+
+    int currentDepth = 0;
+    const char* currentLayerName = nullptr;
+
+    bool evalTie(DrawRule& rule, const DrawRuleData& data, const StyleParam& param) const {
+        auto key = static_cast<uint8_t>(param.key);
+        if (currentDepth == rule.depths[key] && !(param.value == rule.params[key]->value)) {
+            LOGW("Draw parameter '%s' in rule '%s' in layer '%s' is ambiguous!",
+                StyleParam::keyName(param.key).c_str(), data.name.c_str(), currentLayerName);
+            return true;
+        }
+        rule.depths[key] = currentDepth;
+        return false;
+    };
+
+};
+
 DrawRuleData::DrawRuleData(std::string _name, int _id,
                                const std::vector<StyleParam>& _parameters) :
     parameters(_parameters),
@@ -37,8 +57,9 @@ DrawRule::DrawRule(const DrawRuleData& _ruleData) :
     name(&_ruleData.name),
     id(_ruleData.id) {}
 
-void DrawRule::merge(const DrawRuleData& _ruleData) {
-    for (auto& param : _ruleData.parameters) {
+void DrawRule::merge(const DrawRuleData& _ruleData, const RuleTieHandler* _tieHandler) {
+    for (const auto& param : _ruleData.parameters) {
+        if (_tieHandler) { _tieHandler->evalTie(*this, _ruleData, param); }
         params[static_cast<uint8_t>(param.key)] = &param;
     }
 }
@@ -94,25 +115,28 @@ bool DrawRuleMergeSet::match(const Feature& _feature, const SceneLayer& _layer, 
     if (!_layer.filter().eval(_feature, _ctx)) { return false; }
 
     // Add initial drawrules
-    mergeRules(_layer.rules());
+    RuleTieHandler tieHandler(1, _layer.name());
+    mergeRules(_layer.rules(), &tieHandler);
 
     const auto& sublayers = _layer.sublayers();
     for (auto it = sublayers.begin(); it != sublayers.end(); ++it) {
-        queuedLayers.push_back(it);
+        queuedLayers.push_back({ &(*it), 2 });
     }
 
     while (!queuedLayers.empty()) {
-        const auto& layer = *queuedLayers.front();
+        const auto& layer = *(queuedLayers.front().first);
+        int depth = queuedLayers.front().second;
         queuedLayers.pop_front();
 
         if (!layer.filter().eval(_feature, _ctx)) { continue; }
 
         const auto& sublayers = layer.sublayers();
         for (auto it = sublayers.begin(); it != sublayers.end(); ++it) {
-            queuedLayers.push_back(it);
+            queuedLayers.push_back({ &(*it), depth + 1 });
         }
         // override with sublayer drawrules
-        mergeRules(layer.rules());
+        tieHandler = { depth, layer.name() };
+        mergeRules(layer.rules(), &tieHandler);
     }
     return true;
 }
@@ -166,7 +190,7 @@ void DrawRuleMergeSet::apply(const Feature& _feature, const Scene& _scene, const
     }
 }
 
-void DrawRuleMergeSet::mergeRules(const std::vector<DrawRuleData>& rules) {
+void DrawRuleMergeSet::mergeRules(const std::vector<DrawRuleData>& rules, const RuleTieHandler* _tieHandler) {
     for (auto& rule : rules) {
 
         auto it = std::find_if(matchedRules.begin(), matchedRules.end(),
@@ -176,7 +200,7 @@ void DrawRuleMergeSet::mergeRules(const std::vector<DrawRuleData>& rules) {
             it = matchedRules.insert(it, DrawRule(rule));
         }
 
-        it->merge(rule);
+        it->merge(rule, _tieHandler);
     }
 }
 

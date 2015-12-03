@@ -8,6 +8,7 @@
 namespace Tangram {
 
 struct Feature;
+struct RuleTieHandler;
 class Tile;
 class Scene;
 class SceneLayer;
@@ -50,6 +51,7 @@ struct DrawRuleData {
 struct DrawRule {
 
     const StyleParam* params[StyleParamKeySize] = { nullptr };
+    int depths[StyleParamKeySize] = { 0 };
 
     StyleParam evaluated[StyleParamKeySize];
 
@@ -59,7 +61,7 @@ struct DrawRule {
 
     DrawRule(const DrawRuleData& _ruleData);
 
-    void merge(const DrawRuleData& _ruleData);
+    void merge(const DrawRuleData& _ruleData, const RuleTieHandler* _tieHandler = nullptr);
 
     bool isJSFunction(StyleParamKey _key) const;
 
@@ -98,7 +100,7 @@ struct DrawRuleMergeSet {
     bool match(const Feature& _feature, const SceneLayer& _layer, StyleContext& _ctx);
 
     // internal
-    void mergeRules(const std::vector<DrawRuleData>& rules);
+    void mergeRules(const std::vector<DrawRuleData>& rules, const RuleTieHandler* _tieHandler = nullptr);
 
     // Reusable containers 'matchedRules' and 'queuedLayers'
     std::vector<DrawRule> matchedRules;
@@ -106,7 +108,7 @@ struct DrawRuleMergeSet {
     // http://info.prelert.com/blog/stl-container-memory-usage
     // libdc++   4096 + 8 bytes heap
     // libstdc++ 512 + 64 bytes heap
-    std::deque<std::vector<SceneLayer>::const_iterator> queuedLayers;
+    std::deque< std::pair<const SceneLayer*, int> > queuedLayers;
 
 };
 
