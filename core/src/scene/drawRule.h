@@ -51,6 +51,7 @@ struct DrawRuleData {
 struct DrawRule {
 
     const StyleParam* params[StyleParamKeySize] = { nullptr };
+    const char* layers[StyleParamKeySize] = { nullptr };
     int depths[StyleParamKeySize] = { 0 };
 
     StyleParam evaluated[StyleParamKeySize];

@@ -9,7 +9,8 @@
 #include "platform.h"
 
 #include <algorithm>
-#include <deque>
+#include <mutex>
+#include <set>
 
 namespace Tangram {
 
@@ -19,19 +20,29 @@ struct RuleTieHandler {
 
     int currentDepth = 0;
     const char* currentLayerName = nullptr;
+    static std::set<std::string> log;
+    static std::mutex logMutex;
 
     bool evalTie(DrawRule& rule, const DrawRuleData& data, const StyleParam& param) const {
         auto key = static_cast<uint8_t>(param.key);
         if (currentDepth == rule.depths[key] && !(param.value == rule.params[key]->value)) {
-            LOGW("Draw parameter '%s' in rule '%s' in layer '%s' is ambiguous!",
-                StyleParam::keyName(param.key).c_str(), data.name.c_str(), currentLayerName);
+            std::lock_guard<std::mutex> lock(logMutex);
+            std::string logString = "Draw parameter '" + StyleParam::keyName(param.key) + "' in rule '" +
+                data.name + "' in layer '" + currentLayerName + "' conflicts with layer '" + rule.layers[key] + "'";
+
+            if (log.insert(logString).second) { LOGW("%s", logString.c_str()); }
+
             return true;
         }
         rule.depths[key] = currentDepth;
+        rule.layers[key] = currentLayerName;
         return false;
     };
 
 };
+
+std::set<std::string> RuleTieHandler::log{};
+std::mutex RuleTieHandler::logMutex{};
 
 DrawRuleData::DrawRuleData(std::string _name, int _id,
                                const std::vector<StyleParam>& _parameters) :
