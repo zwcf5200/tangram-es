@@ -11,6 +11,9 @@
 // Damping factor for zoom; reciprocal of the decay period in seconds
 #define DAMPING_ZOOM 6.0f
 
+// Damping factor for rotation; reciprocal of the decay period in seconds
+#define DAMPING_ROTATE 6.0f
+
 // Minimum translation at which momentum should start (pixels per second)
 #define THRESHOLD_START_PAN 350.f
 
@@ -23,6 +26,12 @@
 // Minimum zoom at which momentum should stop (zoom levels per second)
 #define THRESHOLD_STOP_ZOOM 0.3f
 
+// Minimum rotation at which momentum should start (radians per second)
+#define THRESHOLD_START_ROTATE 0.1f
+
+// Minimum rotation at which momentum should stop (radians per second)
+#define THRESHOLD_STOP_ROTATE 0.05f
+
 namespace Tangram {
 
 InputHandler::InputHandler(std::shared_ptr<View> _view) : m_view(_view) {}
@@ -32,7 +41,8 @@ void InputHandler::update(float _dt) {
     auto velocityPanPixels = m_view->pixelsPerMeter() / m_view->pixelScale() * m_velocityPan;
 
     bool isFlinging = glm::length(velocityPanPixels) > THRESHOLD_STOP_PAN ||
-                      std::abs(m_velocityZoom) > THRESHOLD_STOP_ZOOM;
+                      std::abs(m_velocityZoom) > THRESHOLD_STOP_ZOOM ||
+                      std::abs(m_velocityRotate) > THRESHOLD_STOP_ROTATE;
 
     if (isFlinging) {
 
@@ -41,6 +51,9 @@ void InputHandler::update(float _dt) {
 
         m_velocityZoom -= _dt * DAMPING_ZOOM * m_velocityZoom;
         m_view->zoom(m_velocityZoom * _dt);
+
+        m_velocityRotate -= _dt * DAMPING_ROTATE * m_velocityRotate;
+        m_view->roll(m_velocityRotate * _dt);
 
         requestRender();
     }
@@ -101,7 +114,7 @@ void InputHandler::handleFlingGesture(float _posX, float _posY, float _velocityX
     float dx = (startX - endX) / epsilon;
     float dy = (startY - endY) / epsilon;
 
-    setVelocity(0.f, glm::vec2(dx, dy));
+    setVelocity(0.f, 0.f, glm::vec2(dx, dy));
 
 }
 
@@ -122,12 +135,12 @@ void InputHandler::handlePinchGesture(float _posX, float _posY, float _scale, fl
     // z'(s) = s' / s / log(2)
     float vz = _velocity / _scale * invLog2;
     if (std::abs(vz) >= THRESHOLD_START_ZOOM) {
-        setVelocity(vz, glm::vec2(0.f));
+        setVelocity(vz, 0.f, glm::vec2(0.f));
     }
 
 }
 
-void InputHandler::handleRotateGesture(float _posX, float _posY, float _radians) {
+void InputHandler::handleRotateGesture(float _posX, float _posY, float _radians, float _velocity) {
 
     onGesture();
 
@@ -138,8 +151,11 @@ void InputHandler::handleRotateGesture(float _posX, float _posY, float _radians)
     // Rotate vector by gesture rotation and apply difference as translation
     glm::vec2 translation = offset - glm::rotate(offset, _radians);
     m_view->translate(translation.x, translation.y);
-
     m_view->roll(_radians);
+
+    if (std::abs(_velocity) >= THRESHOLD_START_ROTATE) {
+        setVelocity(0.f, _velocity, glm::vec2(0.f));
+    }
 
 }
 
@@ -154,22 +170,23 @@ void InputHandler::handleShoveGesture(float _distance) {
 
 void InputHandler::cancelFling() {
 
-    setVelocity(0.f, { 0.f, 0.f});
+    setVelocity(0.f, 0.f, { 0.f, 0.f });
 
 }
 
 void InputHandler::onGesture() {
 
-    setVelocity(0.f, { 0.f, 0.f });
+    cancelFling();
     requestRender();
 
 }
 
-void InputHandler::setVelocity(float _zoom, glm::vec2 _translate) {
+void InputHandler::setVelocity(float _zoom, float _rotate, glm::vec2 _translate) {
 
-    // setup deltas for momentum on gesture
-    m_velocityPan = _translate;
     m_velocityZoom = _zoom;
+    m_velocityRotate = _rotate;
+    m_velocityPan = _translate;
+
 }
 
 }

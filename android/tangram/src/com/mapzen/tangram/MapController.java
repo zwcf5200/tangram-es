@@ -401,9 +401,9 @@ public class MapController implements Renderer {
     public void setRotateResponder(final TouchInput.RotateResponder responder) {
         touchInput.setRotateResponder(new TouchInput.RotateResponder() {
             @Override
-            public boolean onRotate(float x, float y, float rotation) {
-                if (responder == null || !responder.onRotate(x, y, rotation)) {
-                    handleRotateGesture(x, y, rotation);
+            public boolean onRotate(float x, float y, float rotation, float velocity) {
+                if (responder == null || !responder.onRotate(x, y, rotation, velocity)) {
+                    handleRotateGesture(x, y, rotation, velocity);
                 }
                 return true;
             }
@@ -521,7 +521,7 @@ public class MapController implements Renderer {
     private synchronized native void handlePanGesture(float startX, float startY, float endX, float endY);
     private synchronized native void handleFlingGesture(float posX, float posY, float velocityX, float velocityY);
     private synchronized native void handlePinchGesture(float posX, float posY, float scale, float velocity);
-    private synchronized native void handleRotateGesture(float posX, float posY, float rotation);
+    private synchronized native void handleRotateGesture(float posX, float posY, float rotation, float velocity);
     private synchronized native void handleShoveGesture(float distance);
 
     private native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);

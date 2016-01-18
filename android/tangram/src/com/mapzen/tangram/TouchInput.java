@@ -72,7 +72,7 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     }
 
     public interface RotateResponder {
-        boolean onRotate(float x, float y, float rotation);
+        boolean onRotate(float x, float y, float rotation, float velocity);
     }
 
     public interface ShoveResponder {
@@ -306,10 +306,13 @@ public class TouchInput implements OnTouchListener, OnScaleGestureListener,
     @Override
     public boolean onRotate(RotateGestureDetector detector) {
         if (isDetectionAllowed(Gestures.ROTATE) && rotateResponder != null) {
+            long ms = detector.getTimeDelta();
+            float dt = ms > 0 ? ms / 1000.f : 1.f;
             float rotation = -detector.getRotationRadiansDelta();
+            float velocity = rotation / dt;
             float x = detector.getFocusX();
             float y = detector.getFocusY();
-            return rotateResponder.onRotate(x, y, rotation);
+            return rotateResponder.onRotate(x, y, rotation, velocity);
         }
         return false;
     }

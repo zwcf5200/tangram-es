@@ -513,9 +513,9 @@ void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity)
 
 }
 
-void handleRotateGesture(float _posX, float _posY, float _radians) {
+void handleRotateGesture(float _posX, float _posY, float _radians, float _velocity) {
 
-    m_inputHandler->handleRotateGesture(_posX, _posY, _radians);
+    m_inputHandler->handleRotateGesture(_posX, _posY, _radians, _velocity);
 
 }
 
