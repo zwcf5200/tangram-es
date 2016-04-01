@@ -1,8 +1,8 @@
 #include "styleParam.h"
 
-#include "csscolorparser.hpp"
 #include "platform.h"
 #include "util/builders.h" // for cap, join
+#include "util/color.h"
 #include "util/extrude.h"
 #include "util/geom.h" // for CLAMP
 #include <algorithm>
@@ -10,8 +10,6 @@
 #include <cstring>
 
 namespace Tangram {
-
-using Color = CSSColorParser::Color;
 
 const std::map<std::string, StyleParamKey> s_StyleParamMap = {
     {"align", StyleParamKey::align},
@@ -429,25 +427,25 @@ bool StyleParam::parseVec2(const std::string& _value, const std::vector<Unit> un
     return true;
 }
 
-uint32_t StyleParam::parseColor(const std::string& _color) {
+uint32_t StyleParam::parseColor(const std::string& str) {
     Color color;
 
-    if (isdigit(_color.front())) {
+    if (isdigit(str.front())) {
         // try to parse as comma-separated rgba components
         float r, g, b, a = 1.;
-        if (sscanf(_color.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a) >= 3) {
+        if (sscanf(str.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a) >= 3) {
             color = Color {
                 static_cast<uint8_t>(CLAMP((r * 255.), 0, 255)),
                 static_cast<uint8_t>(CLAMP((g * 255.), 0, 255)),
                 static_cast<uint8_t>(CLAMP((b * 255.), 0, 255)),
-                CLAMP(a, 0, 1)
+                static_cast<uint8_t>(CLAMP((a * 255.), 0, 255))
             };
         }
     } else {
         // parse as css color or #hex-num
-        color = CSSColorParser::parse(_color);
+        color = Color::parse(str);
     }
-    return color.getInt();
+    return color.abgr;
 }
 
 bool StyleParam::parseFontSize(const std::string& _str, float& _pxSize) {

@@ -4,7 +4,6 @@
 #include "util/mapProjection.h"
 #include "platform.h"
 
-#include "csscolorparser.hpp"
 #include "yaml-cpp/yaml.h"
 #include <algorithm>
 
@@ -22,7 +21,7 @@ auto Stops::Colors(const YAML::Node& _node) -> Stops {
         Color color;
         YAML::Node colorNode = frameNode[1];
         if (colorNode.IsScalar()) {
-            color.abgr = CSSColorParser::parse(colorNode.as<std::string>()).getInt();
+            color = Color::parse(colorNode.Scalar());
         } else if (colorNode.IsSequence() && colorNode.size() >= 3) {
             color.r = colorNode[0].as<float>() * 255.;
             color.g = colorNode[1].as<float>() * 255.;

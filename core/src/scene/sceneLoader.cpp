@@ -21,10 +21,10 @@
 #include "scene/spriteAtlas.h"
 #include "scene/stops.h"
 #include "scene/styleMixer.h"
+#include "util/color.h"
 #include "util/yamlHelper.h"
 #include "view/view.h"
 
-#include "csscolorparser.hpp"
 #include "yaml-cpp/yaml.h"
 
 #include <algorithm>
