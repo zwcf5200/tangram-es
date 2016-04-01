@@ -7,11 +7,11 @@
 
 namespace Tangram {
 
-Label::Label(Label::Transform _transform, glm::vec2 _size, Type _type, Options _options)
-    : m_type(_type),
-      m_transform(_transform),
-      m_dim(_size),
-      m_options(_options) {
+Label::Label(Label::Transform transform, glm::vec2 size, Type type, Options options)
+    : m_type(type),
+      m_transform(transform),
+      m_dim(size),
+      m_options(options) {
 
     if (!m_options.collide || m_type == Type::debug){
         enterState(State::visible, 1.0);
@@ -30,11 +30,11 @@ Label::Label(Label::Transform _transform, glm::vec2 _size, Type _type, Options _
 
 Label::~Label() {}
 
-void Label::setProxy(bool _proxy) {
-    m_proxy = _proxy;
+void Label::setProxy(bool proxy) {
+    m_proxy = proxy;
 }
 
-bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _screenSize, bool _testVisibility) {
+bool Label::updateScreenTransform(const glm::mat4& mvp, const glm::vec2& screenSize, bool testVisibility) {
 
     glm::vec2 screenPosition;
     float rot = 0;
@@ -45,13 +45,13 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
         case Type::debug:
         case Type::point:
         {
-            glm::vec4 v1 = worldToClipSpace(_mvp, glm::vec4(m_transform.modelPosition1, 0.0, 1.0));
+            glm::vec4 v1 = worldToClipSpace(mvp, glm::vec4(m_transform.modelPosition1, 0.0, 1.0));
 
-            if (_testVisibility && (v1.w <= 0)) {
+            if (testVisibility && (v1.w <= 0)) {
                 return false;
             }
 
-            screenPosition = clipToScreenSpace(v1, _screenSize);
+            screenPosition = clipToScreenSpace(v1, screenSize);
 
             ap1 = ap2 = screenPosition;
 
@@ -61,18 +61,18 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
         {
             // project label position from mercator world space to clip
             // coordinates
-            glm::vec4 v1 = worldToClipSpace(_mvp, glm::vec4(m_transform.modelPosition1, 0.0, 1.0));
-            glm::vec4 v2 = worldToClipSpace(_mvp, glm::vec4(m_transform.modelPosition2, 0.0, 1.0));
+            glm::vec4 v1 = worldToClipSpace(mvp, glm::vec4(m_transform.modelPosition1, 0.0, 1.0));
+            glm::vec4 v2 = worldToClipSpace(mvp, glm::vec4(m_transform.modelPosition2, 0.0, 1.0));
 
             // check whether the label is behind the camera using the
             // perspective division factor
-            if (_testVisibility && (v1.w <= 0 || v2.w <= 0)) {
+            if (testVisibility && (v1.w <= 0 || v2.w <= 0)) {
                 return false;
             }
 
             // project to screen space
-            glm::vec2 p1 = clipToScreenSpace(v1, _screenSize);
-            glm::vec2 p2 = clipToScreenSpace(v2, _screenSize);
+            glm::vec2 p1 = clipToScreenSpace(v1, screenSize);
+            glm::vec2 p2 = clipToScreenSpace(v2, screenSize);
 
             rot = angleBetweenPoints(p1, p2) + M_PI_2;
 
@@ -86,7 +86,7 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
 
             float exceedHeuristic = 30; // default heuristic : 30%
 
-            if (_testVisibility && (m_dim.x > length)) {
+            if (testVisibility && (m_dim.x > length)) {
                 float exceed = (1 - (length / m_dim.x)) * 100;
                 if (exceed > exceedHeuristic) {
                     return false;
@@ -124,12 +124,12 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
     return true;
 }
 
-bool Label::offViewport(const glm::vec2& _screenSize) {
+bool Label::offViewport(const glm::vec2& screenSize) {
     const auto& quad = m_obb.getQuad();
 
     for (int i = 0; i < 4; ++i) {
         const auto& p = quad[i];
-        if (p.x < _screenSize.x && p.y < _screenSize.y && p.x > 0 && p.y > 0) {
+        if (p.x < screenSize.x && p.y < screenSize.y && p.x > 0 && p.y > 0) {
             return false;
         }
     }
@@ -137,8 +137,8 @@ bool Label::offViewport(const glm::vec2& _screenSize) {
     return true;
 }
 
-void Label::occlude(bool _occlusion) {
-    m_occluded = _occlusion;
+void Label::occlude(bool occlusion) {
+    m_occluded = occlusion;
 }
 
 bool Label::canOcclude() {
@@ -173,13 +173,13 @@ glm::vec2 Label::center() const {
     return m_obb.getCentroid();
 }
 
-void Label::enterState(const State& _state, float _alpha) {
-    m_state = _state;
-    setAlpha(_alpha);
+void Label::enterState(const State& state, float alpha) {
+    m_state = state;
+    setAlpha(alpha);
 }
 
-void Label::setAlpha(float _alpha) {
-    float alpha = CLAMP(_alpha, 0.0, 1.0);
+void Label::setAlpha(float a) {
+    float alpha = CLAMP(a, 0.0, 1.0);
     if (m_transform.state.alpha != alpha) {
         m_transform.state.alpha = alpha;
         m_dirty = true;
@@ -199,14 +199,14 @@ void Label::resetState() {
     enterState(State::wait_occ, 0.0);
 }
 
-bool Label::update(const glm::mat4& _mvp, const glm::vec2& _screenSize, float _zoomFract) {
+bool Label::update(const glm::mat4& mvp, const glm::vec2& screenSize, float zoomFract) {
     if (m_state == State::dead) {
         return false;
     }
 
     m_occluded = false;
 
-    bool ruleSatisfied = updateScreenTransform(_mvp, _screenSize, !Tangram::getDebugFlag(DebugFlags::all_labels));
+    bool ruleSatisfied = updateScreenTransform(mvp, screenSize, !Tangram::getDebugFlag(DebugFlags::all_labels));
 
     // one of the label rules has not been satisfied
     if (!ruleSatisfied) {
@@ -226,17 +226,17 @@ bool Label::update(const glm::mat4& _mvp, const glm::vec2& _screenSize, float _z
     }
 
     // update the view-space bouding box
-    updateBBoxes(_zoomFract);
+    updateBBoxes(zoomFract);
 
     // checks whether the label is out of the viewport
-    if (offViewport(_screenSize)) {
+    if (offViewport(screenSize)) {
         enterState(State::out_of_screen, 0.0);
     }
 
     return true;
 }
 
-bool Label::evalState(const glm::vec2& _screenSize, float _dt) {
+bool Label::evalState(const glm::vec2& screenSize, float dt) {
 
     if (Tangram::getDebugFlag(DebugFlags::all_labels)) {
         enterState(State::visible, 1.0);
@@ -261,21 +261,21 @@ bool Label::evalState(const glm::vec2& _screenSize, float _dt) {
                 // animate = true;
                 break;
             }
-            setAlpha(m_fade.update(_dt));
+            setAlpha(m_fade.update(dt));
             animate = true;
             if (m_fade.isFinished()) {
                 enterState(State::visible, 1.0);
             }
             break;
         case State::fading_out:
-            setAlpha(m_fade.update(_dt));
+            setAlpha(m_fade.update(dt));
             animate = true;
             if (m_fade.isFinished()) {
                 enterState(State::sleep, 0.0);
             }
             break;
         case State::out_of_screen:
-            if (!offViewport(_screenSize)) {
+            if (!offViewport(screenSize)) {
                 enterState(State::wait_occ, 0.0);
             }
             break;

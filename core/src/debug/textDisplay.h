@@ -37,12 +37,12 @@ public:
 
     ~TextDisplay();
 
-    void setResolution(glm::vec2 _textDisplayResolution) { m_textDisplayResolution = _textDisplayResolution; }
+    void setResolution(glm::vec2 textDisplayResolution) { m_textDisplayResolution = textDisplayResolution; }
 
     void init();
 
-    /* Draw stacked messages added through log and draw _infos string list */
-    void draw(const std::vector<std::string>& _infos);
+    /* Draw stacked messages added through log and draw infos string list */
+    void draw(const std::vector<std::string>& infos);
 
     /* Stack the log message to be displayed in the screen log */
     void log(const char* fmt, ...);
@@ -51,7 +51,7 @@ private:
 
     TextDisplay();
 
-    void draw(const std::string& _text, int _posx, int _posy);
+    void draw(const std::string& text, int posx, int posy);
 
     glm::vec2 m_textDisplayResolution;
     bool m_initialized;

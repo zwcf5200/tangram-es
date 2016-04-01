@@ -71,7 +71,7 @@ typedef std::vector<Line> Polygon;
 
 struct Feature {
     Feature() {}
-    Feature(int32_t _sourceId) { props.sourceId = _sourceId; }
+    Feature(int32_t sourceId) { props.sourceId = sourceId; }
 
     GeometryType geometryType = GeometryType::polygons;
 
@@ -84,7 +84,7 @@ struct Feature {
 
 struct Layer {
 
-    Layer(const std::string& _name) : name(_name) {}
+    Layer(const std::string& name) : name(name) {}
 
     std::string name;
 

@@ -10,17 +10,17 @@
 namespace Tangram {
 
 
-MVTSource::MVTSource(const std::string& _name, const std::string& _urlTemplate, int32_t _maxZoom) :
-    DataSource(_name, _urlTemplate, _maxZoom) {
+MVTSource::MVTSource(const std::string& name, const std::string& urlTemplate, int32_t maxZoom) :
+    DataSource(name, urlTemplate, maxZoom) {
 }
 
-std::shared_ptr<TileData> MVTSource::parse(const TileTask& _task, const MapProjection& _projection) const {
+std::shared_ptr<TileData> MVTSource::parse(const TileTask& task, const MapProjection& projection) const {
 
     auto tileData = std::make_shared<TileData>();
 
-    auto& task = static_cast<const DownloadTileTask&>(_task);
+    auto& dltask = static_cast<const DownloadTileTask&>(task);
 
-    protobuf::message item(task.rawTileData->data(), task.rawTileData->size());
+    protobuf::message item(dltask.rawTileData->data(), dltask.rawTileData->size());
     PbfParser::ParserContext ctx(m_id);
 
     while(item.next()) {

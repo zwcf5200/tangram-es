@@ -10,8 +10,8 @@ namespace Tangram {
 std::string DirectionalLight::s_classBlock;
 std::string DirectionalLight::s_typeName = "DirectionalLight";
 
-DirectionalLight::DirectionalLight(const std::string& _name, bool _dynamic) :
-    Light(_name, _dynamic),
+DirectionalLight::DirectionalLight(const std::string& name, bool dynamic) :
+    Light(name, dynamic),
     m_direction(1.0,0.0,0.0) {
 
     m_type = LightType::directional;
@@ -19,28 +19,28 @@ DirectionalLight::DirectionalLight(const std::string& _name, bool _dynamic) :
 
 DirectionalLight::~DirectionalLight() {}
 
-void DirectionalLight::setDirection(const glm::vec3 &_dir) {
-    m_direction = glm::normalize(_dir);
+void DirectionalLight::setDirection(const glm::vec3 &dir) {
+    m_direction = glm::normalize(dir);
 }
 
-std::unique_ptr<LightUniforms> DirectionalLight::injectOnProgram(ShaderProgram& _shader) {
-    injectSourceBlocks(_shader);
+std::unique_ptr<LightUniforms> DirectionalLight::injectOnProgram(ShaderProgram& shader) {
+    injectSourceBlocks(shader);
 
     if (!m_dynamic) { return nullptr; }
 
-    return std::make_unique<Uniforms>(_shader, getUniformName());
+    return std::make_unique<Uniforms>(shader, getUniformName());
 }
 
-void DirectionalLight::setupProgram(const View& _view, LightUniforms& _uniforms) {
+void DirectionalLight::setupProgram(const View& view, LightUniforms& uniforms) {
 
     glm::vec3 direction = m_direction;
     if (m_origin == LightOrigin::world) {
-        direction = _view.getNormalMatrix() * direction;
+        direction = view.getNormalMatrix() * direction;
     }
 
-    Light::setupProgram(_view, _uniforms);
+    Light::setupProgram(view, uniforms);
 
-    auto& u = static_cast<DirectionalLight::Uniforms&>(_uniforms);
+    auto& u = static_cast<DirectionalLight::Uniforms&>(uniforms);
     u.shader.setUniformf(u.direction, direction);
 }
 

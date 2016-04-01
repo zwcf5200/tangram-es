@@ -29,15 +29,15 @@ public:
 
     virtual ~Labels();
 
-    void drawDebug(const View& _view);
+    void drawDebug(const View& view);
 
-    void update(const View& _view, float _dt, const std::vector<std::unique_ptr<Style>>& _styles,
-                const std::vector<std::shared_ptr<Tile>>& _tiles, std::unique_ptr<TileCache>& _cache);
+    void update(const View& view, float dt, const std::vector<std::unique_ptr<Style>>& styles,
+                const std::vector<std::shared_ptr<Tile>>& tiles, std::unique_ptr<TileCache>& cache);
 
-    const std::vector<TouchItem>& getFeaturesAtPoint(const View& _view, float _dt,
-                                                     const std::vector<std::unique_ptr<Style>>& _styles,
-                                                     const std::vector<std::shared_ptr<Tile>>& _tiles,
-                                                     float _x, float _y, bool _visibleOnly = true);
+    const std::vector<TouchItem>& getFeaturesAtPoint(const View& view, float dt,
+                                                     const std::vector<std::unique_ptr<Style>>& styles,
+                                                     const std::vector<std::shared_ptr<Tile>>& tiles,
+                                                     float x, float y, bool visibleOnly = true);
 
     bool needUpdate() const { return m_needUpdate; }
 
@@ -47,19 +47,19 @@ private:
     using OBB = isect2d::OBB<glm::vec2>;
     using CollisionPairs = std::vector<isect2d::ISect2D<glm::vec2>::Pair>;
 
-    void updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
-                      const std::vector<std::shared_ptr<Tile>>& _tiles,
-                      float _dt, float _dz, const View& _view);
+    void updateLabels(const std::vector<std::unique_ptr<Style>>& styles,
+                      const std::vector<std::shared_ptr<Tile>>& tiles,
+                      float dt, float dz, const View& view);
 
-    void skipTransitions(const std::vector<std::unique_ptr<Style>>& _styles,
-                         const std::vector<std::shared_ptr<Tile>>& _tiles,
-                         std::unique_ptr<TileCache>& _cache, float _currentZoom) const;
+    void skipTransitions(const std::vector<std::unique_ptr<Style>>& styles,
+                         const std::vector<std::shared_ptr<Tile>>& tiles,
+                         std::unique_ptr<TileCache>& cache, float currentZoom) const;
 
-    void skipTransitions(const std::vector<const Style*>& _styles, Tile& _tile, Tile& _proxy) const;
+    void skipTransitions(const std::vector<const Style*>& styles, Tile& tile, Tile& proxy) const;
 
-    void checkRepeatGroups(std::vector<Label*>& _visibleSet) const;
+    void checkRepeatGroups(std::vector<Label*>& visibleSet) const;
 
-    int LODDiscardFunc(float _maxZoom, float _zoom);
+    int LODDiscardFunc(float maxZoom, float zoom);
 
     bool m_needUpdate;
 

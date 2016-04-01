@@ -13,7 +13,7 @@ extern uint32_t maxCombinedTextureUnits;
 
 void loadCapabilities();
 void loadExtensions();
-bool isAvailable(std::string _extension);
+bool isAvailable(std::string extension);
 void printAvailableExtensions();
 
 }

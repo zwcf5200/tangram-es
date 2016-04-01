@@ -34,36 +34,36 @@ class Texture {
 
 public:
 
-    Texture(unsigned int _width, unsigned int _height,
-            TextureOptions _options = DEFAULT_TEXTURE_OPTION},
-            bool _generateMipmaps = false);
+    Texture(unsigned int width, unsigned int height,
+            TextureOptions options = DEFAULT_TEXTURE_OPTION},
+            bool generateMipmaps = false);
 
     Texture(const unsigned char* data, size_t dataSize,
-            TextureOptions _options = DEFAULT_TEXTURE_OPTION},
-            bool _generateMipmaps = false);
+            TextureOptions options = DEFAULT_TEXTURE_OPTION},
+            bool generateMipmaps = false);
 
-    Texture(const std::string& _file,
-            TextureOptions _options = DEFAULT_TEXTURE_OPTION},
-            bool _generateMipmaps = false);
+    Texture(const std::string& file,
+            TextureOptions options = DEFAULT_TEXTURE_OPTION},
+            bool generateMipmaps = false);
 
-    Texture(Texture&& _other);
-    Texture& operator=(Texture&& _other);
+    Texture(Texture&& other);
+    Texture& operator=(Texture&& other);
 
     virtual ~Texture();
 
     /* Perform texture updates, should be called at least once and after adding data or resizing */
-    virtual void update(GLuint _textureSlot);
+    virtual void update(GLuint textureSlot);
 
-    virtual void update(GLuint _textureSlot, const GLuint* data);
+    virtual void update(GLuint textureSlot, const GLuint* data);
 
     /* Resize the texture */
-    void resize(const unsigned int _width, const unsigned int _height);
+    void resize(const unsigned int width, const unsigned int height);
 
     /* Width and Height texture getters */
     unsigned int getWidth() const { return m_width; }
     unsigned int getHeight() const { return m_height; }
 
-    void bind(GLuint _unit);
+    void bind(GLuint unit);
 
     void setDirty(size_t yOffset, size_t height);
 
@@ -73,11 +73,11 @@ public:
      *
      * Has less priority than set sub data
      */
-    void setData(const GLuint* _data, unsigned int _dataSize);
+    void setData(const GLuint* data, unsigned int dataSize);
 
     /* Update a region of the texture */
-    void setSubData(const GLuint* _subData, uint16_t _xoff, uint16_t _yoff,
-                    uint16_t _width, uint16_t _height, uint16_t _stride);
+    void setSubData(const GLuint* subData, uint16_t xoff, uint16_t yoff,
+                    uint16_t width, uint16_t height, uint16_t stride);
 
     bool isValid();
 
@@ -85,13 +85,13 @@ public:
 
     static void invalidateAllTextures();
 
-    static bool isRepeatWrapping(TextureWrapping _wrapping);
+    static bool isRepeatWrapping(TextureWrapping wrapping);
 
     void loadPNG(const unsigned char* blob, unsigned int size);
 
 protected:
 
-    void generate(GLuint _textureUnit);
+    void generate(GLuint textureUnit);
     void checkValidity();
 
     TextureOptions m_options;

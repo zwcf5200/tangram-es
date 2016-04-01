@@ -15,25 +15,25 @@
 
 namespace Tangram {
 
-Style::Style(std::string _name, Blending _blendMode, GLenum _drawMode) :
-    m_name(_name),
+Style::Style(std::string name, Blending blendMode, GLenum drawMode) :
+    m_name(name),
     m_shaderProgram(std::make_unique<ShaderProgram>()),
-    m_blend(_blendMode),
-    m_drawMode(_drawMode) {
+    m_blend(blendMode),
+    m_drawMode(drawMode) {
     m_material.material = std::make_shared<Material>();
 }
 
 Style::~Style() {}
 
-Style::LightHandle::LightHandle(Light* _light, std::unique_ptr<LightUniforms> _uniforms)
-    : light(_light), uniforms(std::move(_uniforms)){}
+Style::LightHandle::LightHandle(Light* light, std::unique_ptr<LightUniforms> uniforms)
+    : light(light), uniforms(std::move(uniforms)){}
 
 const std::vector<std::string>& Style::builtInStyleNames() {
     static std::vector<std::string> builtInStyleNames{ "points", "lines", "polygons", "text", "debug", "debugtext" };
     return builtInStyleNames;
 }
 
-void Style::build(const std::vector<std::unique_ptr<Light>>& _lights) {
+void Style::build(const std::vector<std::unique_ptr<Light>>& lights) {
 
     constructVertexLayout();
     constructShaderProgram();
@@ -54,7 +54,7 @@ void Style::build(const std::vector<std::unique_ptr<Light>>& _lights) {
     }
 
     if (m_lightingType != LightingType::none) {
-        for (auto& light : _lights) {
+        for (auto& light : lights) {
             auto uniforms = light->injectOnProgram(*m_shaderProgram);
             if (uniforms) {
                 m_lights.emplace_back(light.get(), std::move(uniforms));
@@ -63,16 +63,16 @@ void Style::build(const std::vector<std::unique_ptr<Light>>& _lights) {
     }
 }
 
-void Style::setMaterial(const std::shared_ptr<Material>& _material) {
-    m_material.material = _material;
+void Style::setMaterial(const std::shared_ptr<Material>& material) {
+    m_material.material = material;
     m_material.uniforms.reset();
 }
 
-void Style::setLightingType(LightingType _type) {
-    m_lightingType = _type;
+void Style::setLightingType(LightingType type) {
+    m_lightingType = type;
 }
 
-void Style::setupShaderUniforms(Scene& _scene) {
+void Style::setupShaderUniforms(Scene& scene) {
     for (auto& uniformPair : m_styleUniforms) {
         const auto& name = uniformPair.first;
         auto& value = uniformPair.second;
@@ -80,7 +80,7 @@ void Style::setupShaderUniforms(Scene& _scene) {
         if (value.is<std::string>()) {
             std::shared_ptr<Texture> texture = nullptr;
 
-            if (!_scene.texture(value.get<std::string>(), texture) || !texture) {
+            if (!scene.texture(value.get<std::string>(), texture) || !texture) {
                 // TODO: LOG, would be nice to do have a notify-once-log not to overwhelm logging
                 continue;
             }
@@ -110,7 +110,7 @@ void Style::setupShaderUniforms(Scene& _scene) {
                 for (const auto& textureName : textureUniformArray.names) {
                     std::shared_ptr<Texture> texture = nullptr;
 
-                    if (!_scene.texture(textureName, texture) || !texture) {
+                    if (!scene.texture(textureName, texture) || !texture) {
                         // TODO: LOG, would be nice to do have a notify-once-log not to overwhelm logging
                         continue;
                     }
@@ -130,7 +130,7 @@ void Style::setupShaderUniforms(Scene& _scene) {
     }
 }
 
-void Style::onBeginDrawFrame(const View& _view, Scene& _scene) {
+void Style::onBeginDrawFrame(const View& view, Scene& scene) {
 
     // Reset the currently used texture unit to 0
     RenderState::resetTextureUnit();
@@ -146,21 +146,21 @@ void Style::onBeginDrawFrame(const View& _view, Scene& _scene) {
 
     // Set up lights
     for (const auto& light : m_lights) {
-        light.light->setupProgram(_view, *light.uniforms);
+        light.light->setupProgram(view, *light.uniforms);
     }
 
     // Set Map Position
-    m_shaderProgram->setUniformf(m_uResolution, _view.getWidth(), _view.getHeight());
+    m_shaderProgram->setUniformf(m_uResolution, view.getWidth(), view.getHeight());
 
-    const auto& mapPos = _view.getPosition();
-    m_shaderProgram->setUniformf(m_uMapPosition, mapPos.x, mapPos.y, _view.getZoom());
-    m_shaderProgram->setUniformMatrix3f(m_uNormalMatrix, _view.getNormalMatrix());
-    m_shaderProgram->setUniformMatrix3f(m_uInverseNormalMatrix, _view.getInverseNormalMatrix());
-    m_shaderProgram->setUniformf(m_uMetersPerPixel, 1.0 / _view.pixelsPerMeter());
-    m_shaderProgram->setUniformMatrix4f(m_uView, _view.getViewMatrix());
-    m_shaderProgram->setUniformMatrix4f(m_uProj, _view.getProjectionMatrix());
+    const auto& mapPos = view.getPosition();
+    m_shaderProgram->setUniformf(m_uMapPosition, mapPos.x, mapPos.y, view.getZoom());
+    m_shaderProgram->setUniformMatrix3f(m_uNormalMatrix, view.getNormalMatrix());
+    m_shaderProgram->setUniformMatrix3f(m_uInverseNormalMatrix, view.getInverseNormalMatrix());
+    m_shaderProgram->setUniformf(m_uMetersPerPixel, 1.0 / view.pixelsPerMeter());
+    m_shaderProgram->setUniformMatrix4f(m_uView, view.getViewMatrix());
+    m_shaderProgram->setUniformMatrix4f(m_uProj, view.getProjectionMatrix());
 
-    setupShaderUniforms(_scene);
+    setupShaderUniforms(scene);
 
     // Configure render state
     switch (m_blend) {
@@ -200,59 +200,59 @@ void Style::onBeginDrawFrame(const View& _view, Scene& _scene) {
     }
 }
 
-void Style::draw(const Tile& _tile) {
+void Style::draw(const Tile& tile) {
 
-    auto& styleMesh = _tile.getMesh(*this);
+    auto& styleMesh = tile.getMesh(*this);
 
     if (styleMesh) {
-        m_shaderProgram->setUniformMatrix4f(m_uModel, _tile.getModelMatrix());
-        m_shaderProgram->setUniformf(m_uProxyDepth, _tile.isProxy() ? 1.f : 0.f);
+        m_shaderProgram->setUniformMatrix4f(m_uModel, tile.getModelMatrix());
+        m_shaderProgram->setUniformf(m_uProxyDepth, tile.isProxy() ? 1.f : 0.f);
         m_shaderProgram->setUniformf(m_uTileOrigin,
-                                     _tile.getOrigin().x,
-                                     _tile.getOrigin().y,
-                                     _tile.getID().s,
-                                     _tile.getID().z);
+                                     tile.getOrigin().x,
+                                     tile.getOrigin().y,
+                                     tile.getID().s,
+                                     tile.getID().z);
 
         styleMesh->draw(*m_shaderProgram);
     }
 }
 
-bool StyleBuilder::checkRule(const DrawRule& _rule) const {
+bool StyleBuilder::checkRule(const DrawRule& rule) const {
 
     uint32_t checkColor;
     uint32_t checkOrder;
 
-    if (!_rule.get(StyleParamKey::color, checkColor)) {
+    if (!rule.get(StyleParamKey::color, checkColor)) {
         if (!m_hasColorShaderBlock) {
             return false;
         }
     }
 
-    if (!_rule.get(StyleParamKey::order, checkOrder)) {
+    if (!rule.get(StyleParamKey::order, checkOrder)) {
         return false;
     }
 
     return true;
 }
 
-void StyleBuilder::addFeature(const Feature& _feat, const DrawRule& _rule) {
+void StyleBuilder::addFeature(const Feature& feat, const DrawRule& rule) {
 
-    if (!checkRule(_rule)) { return; }
+    if (!checkRule(rule)) { return; }
 
-    switch (_feat.geometryType) {
+    switch (feat.geometryType) {
         case GeometryType::points:
-            for (auto& point : _feat.points) {
-                addPoint(point, _feat.props, _rule);
+            for (auto& point : feat.points) {
+                addPoint(point, feat.props, rule);
             }
             break;
         case GeometryType::lines:
-            for (auto& line : _feat.lines) {
-                addLine(line, _feat.props, _rule);
+            for (auto& line : feat.lines) {
+                addLine(line, feat.props, rule);
             }
             break;
         case GeometryType::polygons:
-            for (auto& polygon : _feat.polygons) {
-                addPolygon(polygon, _feat.props, _rule);
+            for (auto& polygon : feat.polygons) {
+                addPolygon(polygon, feat.props, rule);
             }
             break;
         default:
@@ -261,23 +261,23 @@ void StyleBuilder::addFeature(const Feature& _feat, const DrawRule& _rule) {
 
 }
 
-StyleBuilder::StyleBuilder(const Style& _style) {
-    const auto& blocks = _style.getShaderProgram()->getSourceBlocks();
+StyleBuilder::StyleBuilder(const Style& style) {
+    const auto& blocks = style.getShaderProgram()->getSourceBlocks();
     if (blocks.find("color") != blocks.end() ||
         blocks.find("filter") != blocks.end()) {
         m_hasColorShaderBlock = true;
     }
 }
 
-void StyleBuilder::addPoint(const Point& _point, const Properties& _props, const DrawRule& _rule) {
+void StyleBuilder::addPoint(const Point& point, const Properties& props, const DrawRule& rule) {
     // No-op by default
 }
 
-void StyleBuilder::addLine(const Line& _line, const Properties& _props, const DrawRule& _rule) {
+void StyleBuilder::addLine(const Line& line, const Properties& props, const DrawRule& rule) {
     // No-op by default
 }
 
-void StyleBuilder::addPolygon(const Polygon& _polygon, const Properties& _props, const DrawRule& _rule) {
+void StyleBuilder::addPolygon(const Polygon& polygon, const Properties& props, const DrawRule& rule) {
     // No-op by default
 }
 

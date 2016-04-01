@@ -23,25 +23,25 @@ class ClientGeoJsonSource : public DataSource {
 
 public:
 
-    ClientGeoJsonSource(const std::string& _name, const std::string& _url, int32_t _maxZoom = 18);
+    ClientGeoJsonSource(const std::string& name, const std::string& url, int32_t maxZoom = 18);
     ~ClientGeoJsonSource();
 
     // Add geometry from a GeoJSON string
-    void addData(const std::string& _data);
-    void addPoint(const Properties& _tags, LngLat _point);
-    void addLine(const Properties& _tags, const Coordinates& _line);
-    void addPoly(const Properties& _tags, const std::vector<Coordinates>& _poly);
+    void addData(const std::string& data);
+    void addPoint(const Properties& props, LngLat point);
+    void addLine(const Properties& props, const Coordinates& coords);
+    void addPoly(const Properties& props, const std::vector<Coordinates>& poly);
 
-    virtual bool loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb) override;
-    std::shared_ptr<TileTask> createTask(TileID _tileId) override;
+    virtual bool loadTileData(std::shared_ptr<TileTask>&& task, TileTaskCb cb) override;
+    std::shared_ptr<TileTask> createTask(TileID tileId) override;
 
-    virtual void cancelLoadingTile(const TileID& _tile) override {};
+    virtual void cancelLoadingTile(const TileID& tile) override {};
     virtual void clearData() override;
 
 protected:
 
-    virtual std::shared_ptr<TileData> parse(const TileTask& _task,
-                                            const MapProjection& _projection) const override;
+    virtual std::shared_ptr<TileData> parse(const TileTask& task,
+                                            const MapProjection& projection) const override;
 
     std::unique_ptr<GeoJSONVT> m_store;
     mutable std::mutex m_mutexStore;

@@ -31,8 +31,8 @@ class DynamicQuadMesh : public StyledMesh, protected MeshBase {
 
 public:
 
-    DynamicQuadMesh(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMode)
-        : MeshBase(_vertexLayout, _drawMode, GL_DYNAMIC_DRAW) {
+    DynamicQuadMesh(std::shared_ptr<VertexLayout> vertexLayout, GLenum drawMode)
+        : MeshBase(vertexLayout, drawMode, GL_DYNAMIC_DRAW) {
 
         QuadIndices::ref();
     }
@@ -41,7 +41,7 @@ public:
         QuadIndices::unref();
     }
 
-    void draw(ShaderProgram& _shader) override;
+    void draw(ShaderProgram& shader) override;
 
     size_t bufferSize() const override {
         return MeshBase::bufferSize();
@@ -91,7 +91,7 @@ void DynamicQuadMesh<T>::upload() {
 }
 
 template<class T>
-void DynamicQuadMesh<T>::draw(ShaderProgram& _shader) {
+void DynamicQuadMesh<T>::draw(ShaderProgram& shader) {
 
     if (m_nVertices == 0) { return; }
 
@@ -100,7 +100,7 @@ void DynamicQuadMesh<T>::draw(ShaderProgram& _shader) {
     QuadIndices::load();
 
     // Enable shader program
-    _shader.use();
+    shader.use();
 
     size_t vertexOffset = 0;
 
@@ -112,7 +112,7 @@ void DynamicQuadMesh<T>::draw(ShaderProgram& _shader) {
         }
         size_t byteOffset = vertexOffset * m_vertexLayout->getStride();
 
-        m_vertexLayout->enable(_shader, byteOffset);
+        m_vertexLayout->enable(shader, byteOffset);
 
         glDrawElements(m_drawMode, nVertices * 6 / 4, GL_UNSIGNED_SHORT, 0);
 

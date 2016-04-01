@@ -12,11 +12,11 @@ class TextLabels : public LabelSet {
 
 public:
 
-    TextLabels(const TextStyle& _style) : style(_style) {}
+    TextLabels(const TextStyle& style) : style(style) {}
 
     ~TextLabels() override;
 
-    void setQuads(std::vector<GlyphQuad>& _quads);
+    void setQuads(std::vector<GlyphQuad>& quads);
 
     std::vector<GlyphQuad> quads;
     const TextStyle& style;

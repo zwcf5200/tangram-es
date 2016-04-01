@@ -34,7 +34,7 @@ struct MaterialTexture {
 
 struct MaterialUniforms {
 
-    MaterialUniforms(ShaderProgram& _shader) : shader(_shader) {}
+    MaterialUniforms(ShaderProgram& shader) : shader(shader) {}
 
     ShaderProgram& shader;
 
@@ -70,45 +70,45 @@ public:
 
     /*  Emission color is by default disabled and vec4(0.0).
      *  Setting this property enables it and changes require reloading the shader. */
-    void setEmission(glm::vec4 _emission);
-    void setEmission(MaterialTexture _emissionTexture);
+    void setEmission(glm::vec4 emission);
+    void setEmission(MaterialTexture emissionTexture);
 
     /*  Ambient color is by default disabled and vec4(1.0).
      *  Setting this property enables it and changes require reloading the shader. */
-    void setAmbient(glm::vec4 _ambient);
-    void setAmbient(MaterialTexture _ambientTexture);
+    void setAmbient(glm::vec4 ambient);
+    void setAmbient(MaterialTexture ambientTexture);
 
     /*  Diffuse color is by default enabled and vec4(1.0).
      *  Changes require reloading the shader. */
-    void setDiffuse(glm::vec4 _diffuse);
-    void setDiffuse(MaterialTexture _diffuseTexture);
+    void setDiffuse(glm::vec4 diffuse);
+    void setDiffuse(MaterialTexture diffuseTexture);
 
     /*  Specular color is by default disabled and vec4(0.2) with a shininess factor of 0.2.
      *  Setting this property enables it and changes require reloading the shader. */
-    void setSpecular(glm::vec4 _specular);
-    void setSpecular(MaterialTexture _specularTexture);
+    void setSpecular(glm::vec4 specular);
+    void setSpecular(MaterialTexture specularTexture);
 
-    void setShininess(float _shiny);
+    void setShininess(float shiny);
 
     /* Enable or disable emission colors */
-    void setEmissionEnabled(bool _enable);
+    void setEmissionEnabled(bool enable);
 
     /* Enable or disable ambient colors */
-    void setAmbientEnabled(bool _enable);
+    void setAmbientEnabled(bool enable);
 
     /* Enable or disable diffuse colors */
-    void setDiffuseEnabled(bool _enable);
+    void setDiffuseEnabled(bool enable);
 
     /* Enable or disable specular colors */
-    void setSpecularEnabled(bool _enable);
+    void setSpecularEnabled(bool enable);
 
-    void setNormal(MaterialTexture _normalTexture);
+    void setNormal(MaterialTexture normalTexture);
 
     /*  Inject the needed lines of GLSL code on the shader to make this material work */
-    virtual std::unique_ptr<MaterialUniforms> injectOnProgram(ShaderProgram& _shader);
+    virtual std::unique_ptr<MaterialUniforms> injectOnProgram(ShaderProgram& shader);
 
     /*  Method to pass it self as a uniform to the shader program */
-    virtual void setupProgram(MaterialUniforms& _uniforms);
+    virtual void setupProgram(MaterialUniforms& uniforms);
 
     bool hasEmission() const { return m_bEmission; }
     bool hasAmbient() const { return m_bAmbient; }

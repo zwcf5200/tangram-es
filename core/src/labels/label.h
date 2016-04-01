@@ -42,8 +42,8 @@ public:
     };
 
     struct Transform {
-        Transform(glm::vec2 _pos) : modelPosition1(_pos), modelPosition2(_pos) {}
-        Transform(glm::vec2 _pos1, glm::vec2 _pos2) : modelPosition1(_pos1), modelPosition2(_pos2) {}
+        Transform(glm::vec2 pos) : modelPosition1(pos), modelPosition2(pos) {}
+        Transform(glm::vec2 pos1, glm::vec2 pos2) : modelPosition1(pos1), modelPosition2(pos2) {}
 
         glm::vec2 modelPosition1;
         glm::vec2 modelPosition2;
@@ -77,25 +77,25 @@ public:
         size_t paramHash = 0;
     };
 
-    Label(Transform _transform, glm::vec2 _size, Type _type, Options _options);
+    Label(Transform transform, glm::vec2 size, Type type, Options options);
 
     virtual ~Label();
 
-    bool update(const glm::mat4& _mvp, const glm::vec2& _screenSize, float _zoomFract);
+    bool update(const glm::mat4& mvp, const glm::vec2& screenSize, float zoomFract);
 
     /* Push the pending transforms to the vbo by updating the vertices */
     virtual void pushTransform() = 0;
 
-    bool evalState(const glm::vec2& _screenSize, float _dt);
+    bool evalState(const glm::vec2& screenSize, float dt);
 
     /* Update the screen position of the label */
-    bool updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _screenSize,
-                               bool _testVisibility = true);
+    bool updateScreenTransform(const glm::mat4& mvp, const glm::vec2& screenSize,
+                               bool testVisibility = true);
 
-    virtual void updateBBoxes(float _zoomFract) = 0;
+    virtual void updateBBoxes(float zoomFract) = 0;
 
     /* Occlude the label */
-    void occlude(bool _occlusion = true);
+    void occlude(bool occlusion = true);
 
     /* Checks whether the label is in a state where it can occlusion */
     bool canOcclude();
@@ -107,7 +107,7 @@ public:
 
     void resetState();
 
-    void setProxy(bool _proxy);
+    void setProxy(bool proxy);
 
     /* Whether the label belongs to a proxy tile */
     bool isProxy() const { return m_proxy; }
@@ -128,11 +128,11 @@ public:
 
 private:
 
-    bool offViewport(const glm::vec2& _screenSize);
+    bool offViewport(const glm::vec2& screenSize);
 
-    inline void enterState(const State& _state, float _alpha = 1.0f);
+    inline void enterState(const State& state, float alpha = 1.0f);
 
-    void setAlpha(float _alpha);
+    void setAlpha(float alpha);
 
     bool m_proxy;
     // the current label state
@@ -145,8 +145,8 @@ private:
 
 protected:
 
-    // set alignment on _screenPosition based on anchor points _ap1, _ap2
-    virtual void align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) = 0;
+    // set alignment on screenPosition based on anchor points ap1, ap2
+    virtual void align(glm::vec2& screenPosition, const glm::vec2& ap1, const glm::vec2& ap2) = 0;
 
     // the label type (point/line)
     Type m_type;

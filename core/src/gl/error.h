@@ -16,7 +16,7 @@ public:
      * If an error is found, it prints the GL error enum combined with the location tag passed in,
      * then returns true. This is intended to be used infrequently, in places where errors are likely or known.
      */
-    static bool hadGlError(const std::string& _locationTag);
+    static bool hadGlError(const std::string& locationTag);
 
 private:
 

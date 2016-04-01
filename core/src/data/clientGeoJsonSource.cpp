@@ -19,8 +19,8 @@ const double extent = 4096;
 const uint32_t indexMaxPoints = 100000;
 double tolerance = 1E-8;
 
-std::shared_ptr<TileTask> ClientGeoJsonSource::createTask(TileID _tileId) {
-    return std::make_shared<TileTask>(_tileId, shared_from_this());
+std::shared_ptr<TileTask> ClientGeoJsonSource::createTask(TileID tileId) {
+    return std::make_shared<TileTask>(tileId, shared_from_this());
 }
 
 // Transform a geojsonvt::TilePoint into the corresponding Tangram::Point
@@ -28,21 +28,21 @@ Point transformPoint(geojsonvt::TilePoint pt) {
     return { pt.x / extent, 1. - pt.y / extent, 0 };
 }
 
-ClientGeoJsonSource::ClientGeoJsonSource(const std::string& _name, const std::string& _url, int32_t _maxZoom)
-    : DataSource(_name, _url, _maxZoom) {
+ClientGeoJsonSource::ClientGeoJsonSource(const std::string& name, const std::string& url, int32_t maxZoom)
+    : DataSource(name, url, maxZoom) {
 
-    if (!_url.empty()) {
+    if (!url.empty()) {
         // Load from file
-        const auto& string = stringFromFile(_url.c_str(), PathType::resource);
+        const auto& string = stringFromFile(url.c_str(), PathType::resource);
         addData(string);
     }
 }
 
 ClientGeoJsonSource::~ClientGeoJsonSource() {}
 
-void ClientGeoJsonSource::addData(const std::string& _data) {
+void ClientGeoJsonSource::addData(const std::string& data) {
 
-    auto features = geojsonvt::GeoJSONVT::convertFeatures(_data);
+    auto features = geojsonvt::GeoJSONVT::convertFeatures(data);
 
     for (auto& f : features) {
         m_features.push_back(std::move(f));
@@ -54,9 +54,9 @@ void ClientGeoJsonSource::addData(const std::string& _data) {
 
 }
 
-bool ClientGeoJsonSource::loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb) {
+bool ClientGeoJsonSource::loadTileData(std::shared_ptr<TileTask>&& task, TileTaskCb cb) {
 
-    _cb.func(std::move(_task));
+    cb.func(std::move(task));
 
     return true;
 }
@@ -70,13 +70,13 @@ void ClientGeoJsonSource::clearData() {
     m_generation++;
 }
 
-void ClientGeoJsonSource::addPoint(const Properties& _tags, LngLat _point) {
+void ClientGeoJsonSource::addPoint(const Properties& props, LngLat point) {
 
-    auto container = geojsonvt::Convert::project({ geojsonvt::LonLat(_point.longitude, _point.latitude) }, tolerance);
+    auto container = geojsonvt::Convert::project({ geojsonvt::LonLat(point.longitude, point.latitude) }, tolerance);
 
     geojsonvt::Tags tags;
 
-    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(_tags)},
+    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(props)},
                                               geojsonvt::ProjectedFeatureType::Point,
                                               container.members);
 
@@ -87,12 +87,12 @@ void ClientGeoJsonSource::addPoint(const Properties& _tags, LngLat _point) {
     m_generation++;
 }
 
-void ClientGeoJsonSource::addLine(const Properties& _tags, const Coordinates& _line) {
-    auto& line = reinterpret_cast<const std::vector<geojsonvt::LonLat>&>(_line);
+void ClientGeoJsonSource::addLine(const Properties& props, const Coordinates& line) {
+    auto& gjvtline = reinterpret_cast<const std::vector<geojsonvt::LonLat>&>(line);
 
-    std::vector<geojsonvt::ProjectedGeometry> geometry = { geojsonvt::Convert::project(line, tolerance) };
+    std::vector<geojsonvt::ProjectedGeometry> geometry = { geojsonvt::Convert::project(gjvtline, tolerance) };
 
-    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(_tags)},
+    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(props)},
                                               geojsonvt::ProjectedFeatureType::LineString,
                                               geometry);
 
@@ -103,15 +103,15 @@ void ClientGeoJsonSource::addLine(const Properties& _tags, const Coordinates& _l
     m_generation++;
 }
 
-void ClientGeoJsonSource::addPoly(const Properties& _tags, const std::vector<Coordinates>& _poly) {
+void ClientGeoJsonSource::addPoly(const Properties& props, const std::vector<Coordinates>& poly) {
 
     geojsonvt::ProjectedGeometryContainer geometry;
-    for (auto& _ring : _poly) {
-        auto& ring = reinterpret_cast<const std::vector<geojsonvt::LonLat>&>(_ring);
-        geometry.members.push_back(geojsonvt::Convert::project(ring, tolerance));
+    for (auto& ring : poly) {
+        auto& gjvtring = reinterpret_cast<const std::vector<geojsonvt::LonLat>&>(ring);
+        geometry.members.push_back(geojsonvt::Convert::project(gjvtring, tolerance));
     }
 
-    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(_tags)},
+    auto feature = geojsonvt::Convert::create(geojsonvt::Tags{std::make_shared<Properties>(props)},
                                               geojsonvt::ProjectedFeatureType::Polygon,
                                               geometry);
 
@@ -122,8 +122,8 @@ void ClientGeoJsonSource::addPoly(const Properties& _tags, const std::vector<Coo
     m_generation++;
 }
 
-std::shared_ptr<TileData> ClientGeoJsonSource::parse(const TileTask& _task,
-                                                     const MapProjection& _projection) const {
+std::shared_ptr<TileData> ClientGeoJsonSource::parse(const TileTask& task,
+                                                     const MapProjection& projection) const {
 
     auto data = std::make_shared<TileData>();
 
@@ -131,7 +131,7 @@ std::shared_ptr<TileData> ClientGeoJsonSource::parse(const TileTask& _task,
     {
         std::lock_guard<std::mutex> lock(m_mutexStore);
         if (!m_store) { return nullptr; }
-        tile = m_store->getTile(_task.tileId().z, _task.tileId().x, _task.tileId().y);
+        tile = m_store->getTile(task.tileId().z, task.tileId().x, task.tileId().y);
     }
 
     Layer layer(""); // empty name will skip filtering by 'collection'

@@ -29,28 +29,28 @@ struct SpotLight {
     float spotExponent;
 };
 
-void calculateLight(in SpotLight _light, in vec3 _eyeToPoint, in vec3 _normal) {
+void calculateLight(in SpotLight light, in vec3 eyeToPoint, in vec3 normal) {
 
-    float dist = length(_light.position.xyz - _eyeToPoint);
+    float dist = length(light.position.xyz - eyeToPoint);
 
     // Compute vector from surface to light position
-    vec3 VP = (_light.position.xyz - _eyeToPoint) / dist;
+    vec3 VP = (light.position.xyz - eyeToPoint) / dist;
 
     // normal . light direction
-    float nDotVP = clamp(dot(_normal, VP), 0.0, 1.0);
+    float nDotVP = clamp(dot(normal, VP), 0.0, 1.0);
 
     // Attenuation defaults
     float attenuation = 1.0;
     #ifdef TANGRAM_POINTLIGHT_ATTENUATION_EXPONENT
         float Rin = 1.0;
-        float e = _light.attenuationExponent;
+        float e = light.attenuationExponent;
 
         #ifdef TANGRAM_POINTLIGHT_ATTENUATION_INNER_RADIUS
-            Rin = _light.innerRadius;
+            Rin = light.innerRadius;
         #endif
 
         #ifdef TANGRAM_POINTLIGHT_ATTENUATION_OUTER_RADIUS
-            float Rdiff = _light.outerRadius-Rin;
+            float Rdiff = light.outerRadius-Rin;
             float d = clamp(max(0.0,dist-Rin)/Rdiff, 0.0, 1.0);
             attenuation = 1.0-(pow(d,e));
         #else
@@ -63,9 +63,9 @@ void calculateLight(in SpotLight _light, in vec3 _eyeToPoint, in vec3 _normal) {
         float Rin = 0.0;
 
         #ifdef TANGRAM_POINTLIGHT_ATTENUATION_INNER_RADIUS
-            Rin = _light.innerRadius;
+            Rin = light.innerRadius;
             #ifdef TANGRAM_POINTLIGHT_ATTENUATION_OUTER_RADIUS
-                float Rdiff = _light.outerRadius-Rin;
+                float Rdiff = light.outerRadius-Rin;
                 float d = clamp(max(0.0,dist-Rin)/Rdiff, 0.0, 1.0);
                 attenuation = 1.0-d*d;
             #else
@@ -76,7 +76,7 @@ void calculateLight(in SpotLight _light, in vec3 _eyeToPoint, in vec3 _normal) {
             #endif
         #else
             #ifdef TANGRAM_POINTLIGHT_ATTENUATION_OUTER_RADIUS
-                float d = clamp(dist/_light.outerRadius, 0.0, 1.0);
+                float d = clamp(dist/light.outerRadius, 0.0, 1.0);
                 attenuation = 1.0-d*d;
             #else
                 attenuation = 1.0;
@@ -88,26 +88,26 @@ void calculateLight(in SpotLight _light, in vec3 _eyeToPoint, in vec3 _normal) {
     float spotAttenuation = 0.0;
 
     // See if point on surface is inside cone of illumination
-    float spotDot = clamp(dot(-VP, normalize(_light.direction)), 0.0, 1.0);
+    float spotDot = clamp(dot(-VP, normalize(light.direction)), 0.0, 1.0);
 
-    if (spotDot >= _light.spotCosCutoff) {
-        spotAttenuation = pow(spotDot, _light.spotExponent);
+    if (spotDot >= light.spotCosCutoff) {
+        spotAttenuation = pow(spotDot, light.spotExponent);
     }
 
-    light_accumulator_ambient += _light.ambient * attenuation * spotAttenuation;
+    light_accumulator_ambient += light.ambient * attenuation * spotAttenuation;
 
     #ifdef TANGRAM_MATERIAL_DIFFUSE
-        light_accumulator_diffuse += _light.diffuse * nDotVP * attenuation * spotAttenuation;
+        light_accumulator_diffuse += light.diffuse * nDotVP * attenuation * spotAttenuation;
     #endif
 
     #ifdef TANGRAM_MATERIAL_SPECULAR
         // Power factor for shiny speculars
         float pf = 0.0;
         if (nDotVP > 0.0) {
-            vec3 reflectVector = reflect(-VP, _normal);
-            float eyeDotR = max(dot(-normalize(_eyeToPoint), reflectVector), 0.0);
+            vec3 reflectVector = reflect(-VP, normal);
+            float eyeDotR = max(dot(-normalize(eyeToPoint), reflectVector), 0.0);
             pf = pow(eyeDotR, material.shininess);
         }
-        light_accumulator_specular += _light.specular * pf * attenuation * spotAttenuation;
+        light_accumulator_specular += light.specular * pf * attenuation * spotAttenuation;
     #endif
 }

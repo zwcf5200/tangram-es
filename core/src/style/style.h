@@ -38,7 +38,7 @@ enum class Blending : int8_t {
 };
 
 struct StyledMesh {
-    virtual void draw(ShaderProgram& _shader) = 0;
+    virtual void draw(ShaderProgram& shader) = 0;
     virtual size_t bufferSize() const = 0;
 
     virtual ~StyledMesh() {}
@@ -48,25 +48,25 @@ struct StyledMesh {
 class StyleBuilder {
 public:
 
-    StyleBuilder(const Style& _style);
+    StyleBuilder(const Style& style);
 
-    virtual void setup(const Tile& _tile) = 0;
+    virtual void setup(const Tile& tile) = 0;
 
-    virtual void addFeature(const Feature& _feat, const DrawRule& _rule);
+    virtual void addFeature(const Feature& feat, const DrawRule& rule);
 
     /* Build styled vertex data for point geometry */
-    virtual void addPoint(const Point& _point, const Properties& _props, const DrawRule& _rule);
+    virtual void addPoint(const Point& point, const Properties& props, const DrawRule& rule);
 
     /* Build styled vertex data for line geometry */
-    virtual void addLine(const Line& _line, const Properties& _props, const DrawRule& _rule);
+    virtual void addLine(const Line& line, const Properties& props, const DrawRule& rule);
 
     /* Build styled vertex data for polygon geometry */
-    virtual void addPolygon(const Polygon& _polygon, const Properties& _props, const DrawRule& _rule);
+    virtual void addPolygon(const Polygon& polygon, const Properties& props, const DrawRule& rule);
 
     /* Create a new mesh object using the vertex layout corresponding to this style */
     virtual std::unique_ptr<StyledMesh> build() = 0;
 
-    virtual bool checkRule(const DrawRule& _rule) const;
+    virtual bool checkRule(const DrawRule& rule) const;
 
     virtual const Style& style() const = 0;
 
@@ -128,9 +128,9 @@ protected:
      */
     virtual void constructShaderProgram() = 0;
 
-    /* Set uniform values when @_updateUniforms is true,
+    /* Set uniform values when @updateUniforms is true,
      */
-    void setupShaderUniforms(Scene& _scene);
+    void setupShaderUniforms(Scene& scene);
 
     UniformLocation m_uTime{"u_time"};
     // View uniforms
@@ -152,7 +152,7 @@ private:
     std::vector<StyleUniform> m_styleUniforms;
 
     struct LightHandle {
-        LightHandle(Light* _light, std::unique_ptr<LightUniforms> _uniforms);
+        LightHandle(Light* light, std::unique_ptr<LightUniforms> uniforms);
 
         Light *light;
         std::unique_ptr<LightUniforms> uniforms;
@@ -171,7 +171,7 @@ private:
 
 public:
 
-    Style(std::string _name, Blending _blendMode, GLenum _drawMode);
+    Style(std::string name, Blending blendMode, GLenum drawMode);
 
     virtual ~Style();
 
@@ -198,43 +198,43 @@ public:
     Blending blendMode() const { return m_blend; };
     int blendOrder() const { return m_blendOrder; };
 
-    void setBlendMode(Blending _blendMode) { m_blend = _blendMode; }
-    void setBlendOrder(int _blendOrder) { m_blendOrder = _blendOrder; }
+    void setBlendMode(Blending blendMode) { m_blend = blendMode; }
+    void setBlendOrder(int blendOrder) { m_blendOrder = blendOrder; }
 
     /* Whether or not the style is animated */
     bool isAnimated() { return m_animated; }
 
     /* Make this style ready to be used (call after all needed properties are set) */
-    virtual void build(const std::vector<std::unique_ptr<Light>>& _lights);
+    virtual void build(const std::vector<std::unique_ptr<Light>>& lights);
 
     virtual void onBeginUpdate() {}
 
     virtual void onBeginFrame() {}
 
     /* Perform any setup needed before drawing each frame
-     * _textUnit is the next available texture unit
+     * textUnit is the next available texture unit
      */
-    virtual void onBeginDrawFrame(const View& _view, Scene& _scene);
+    virtual void onBeginDrawFrame(const View& view, Scene& scene);
 
     /* Perform any unsetup needed after drawing each frame */
     virtual void onEndDrawFrame() {}
 
     /* Draws the geometry associated with this <Style> */
-    virtual void draw(const Tile& _tile);
+    virtual void draw(const Tile& tile);
 
-    virtual void setLightingType(LightingType _lType);
+    virtual void setLightingType(LightingType lType);
 
-    void setAnimated(bool _animated) { m_animated = _animated; }
+    void setAnimated(bool animated) { m_animated = animated; }
 
-    void setMaterial(const std::shared_ptr<Material>& _material);
+    void setMaterial(const std::shared_ptr<Material>& material);
 
-    void setPixelScale(float _pixelScale) { m_pixelScale = _pixelScale; }
+    void setPixelScale(float pixelScale) { m_pixelScale = pixelScale; }
 
-    void setTexCoordsGeneration(bool _texCoordsGeneration) { m_texCoordsGeneration = _texCoordsGeneration; }
+    void setTexCoordsGeneration(bool texCoordsGeneration) { m_texCoordsGeneration = texCoordsGeneration; }
 
     bool genTexCoords() const { return m_texCoordsGeneration; }
 
-    void setID(uint32_t _id) { m_id = _id; }
+    void setID(uint32_t id) { m_id = id; }
 
     std::shared_ptr<Material> getMaterial() { return m_material.material; }
 

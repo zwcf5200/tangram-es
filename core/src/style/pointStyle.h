@@ -27,14 +27,14 @@ public:
         float extrudeScale = 1.f;
     };
 
-    PointStyle(std::string _name, Blending _blendMode = Blending::overlay, GLenum _drawMode = GL_TRIANGLES);
+    PointStyle(std::string name, Blending blendMode = Blending::overlay, GLenum drawMode = GL_TRIANGLES);
 
     virtual void onBeginUpdate() override;
-    virtual void onBeginDrawFrame(const View& _view, Scene& _scene) override;
+    virtual void onBeginDrawFrame(const View& view, Scene& scene) override;
     virtual void onBeginFrame() override;
 
-    void setSpriteAtlas(std::shared_ptr<SpriteAtlas> _spriteAtlas) { m_spriteAtlas = _spriteAtlas; }
-    void setTexture(std::shared_ptr<Texture> _texture) { m_texture = _texture; }
+    void setSpriteAtlas(std::shared_ptr<SpriteAtlas> spriteAtlas) { m_spriteAtlas = spriteAtlas; }
+    void setTexture(std::shared_ptr<Texture> texture) { m_texture = texture; }
 
     const auto& texture() const { return m_texture; }
     const auto& spriteAtlas() const { return m_spriteAtlas; }

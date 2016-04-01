@@ -21,8 +21,8 @@ struct PosColVertex {
 };
 
 
-DebugStyle::DebugStyle(std::string _name, Blending _blendMode, GLenum _drawMode)
-    : Style(_name, _blendMode, _drawMode) {}
+DebugStyle::DebugStyle(std::string name, Blending blendMode, GLenum drawMode)
+    : Style(name, blendMode, drawMode) {}
 
 void DebugStyle::constructVertexLayout() {
 
@@ -46,7 +46,7 @@ struct DebugStyleBuilder : public StyleBuilder {
 
     const DebugStyle& m_style;
 
-    void setup(const Tile& _tile) override {}
+    void setup(const Tile& tile) override {}
 
     std::unique_ptr<StyledMesh> build() override {
         if (!Tangram::getDebugFlag(Tangram::DebugFlags::tile_bounds)) {
@@ -70,8 +70,8 @@ struct DebugStyleBuilder : public StyleBuilder {
 
     const Style& style() const override { return m_style; }
 
-    DebugStyleBuilder(const DebugStyle& _style)
-        : StyleBuilder(_style), m_style(_style) {}
+    DebugStyleBuilder(const DebugStyle& style)
+        : StyleBuilder(style), m_style(style) {}
 
 };
 

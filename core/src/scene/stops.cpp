@@ -10,11 +10,11 @@
 
 namespace Tangram {
 
-auto Stops::Colors(const YAML::Node& _node) -> Stops {
+auto Stops::Colors(const YAML::Node& node) -> Stops {
     Stops stops;
-    if (!_node.IsSequence()) { return stops; }
+    if (!node.IsSequence()) { return stops; }
 
-    for (const auto& frameNode : _node) {
+    for (const auto& frameNode : node) {
         if (!frameNode.IsSequence() || frameNode.size() != 2) { continue; }
         float key = frameNode[0].as<float>();
 
@@ -35,24 +35,24 @@ auto Stops::Colors(const YAML::Node& _node) -> Stops {
     return stops;
 }
 
-double widthMeterToPixel(float _zoom, double _tileSize, double _width) {
+double widthMeterToPixel(float zoom, double tileSize, double width) {
     // pixel per meter at z == 0
-    double meterRes = _tileSize / (2.0 * MapProjection::HALF_CIRCUMFERENCE);
+    double meterRes = tileSize / (2.0 * MapProjection::HALF_CIRCUMFERENCE);
     // pixel per meter at zoom
-    meterRes *= exp2(_zoom);
+    meterRes *= exp2(zoom);
 
-    return _width * meterRes;
+    return width * meterRes;
 }
 
-auto Stops::FontSize(const YAML::Node& _node) -> Stops {
+auto Stops::FontSize(const YAML::Node& node) -> Stops {
     Stops stops;
 
-    if (!_node.IsSequence()) {
+    if (!node.IsSequence()) {
         return stops;
     }
 
     float lastKey = 0;
-    for (const auto& frameNode : _node) {
+    for (const auto& frameNode : node) {
         if (!frameNode.IsSequence() || frameNode.size() != 2) { continue; }
         float key = frameNode[0].as<float>();
 
@@ -74,13 +74,13 @@ auto Stops::FontSize(const YAML::Node& _node) -> Stops {
     return stops;
 }
 
-auto Stops::Offsets(const YAML::Node& _node, const std::vector<Unit>& _units) -> Stops {
+auto Stops::Offsets(const YAML::Node& node, const std::vector<Unit>& units) -> Stops {
     Stops stops;
-    if (!_node.IsSequence()) {
+    if (!node.IsSequence()) {
         return stops;
     }
     float lastKey = 0;
-    for (const auto& frameNode : _node) {
+    for (const auto& frameNode : node) {
         if (!frameNode.IsSequence() || frameNode.size() != 2) { continue; }
         float key = frameNode[0].as<float>();
 
@@ -119,17 +119,17 @@ auto Stops::Offsets(const YAML::Node& _node, const std::vector<Unit>& _units) ->
     return stops;
 }
 
-auto Stops::Widths(const YAML::Node& _node, const MapProjection& _projection, const std::vector<Unit>& _units) -> Stops {
+auto Stops::Widths(const YAML::Node& node, const MapProjection& projection, const std::vector<Unit>& units) -> Stops {
     Stops stops;
-    if (!_node.IsSequence()) { return stops; }
+    if (!node.IsSequence()) { return stops; }
 
-    double tileSize = _projection.TileSize();
+    double tileSize = projection.TileSize();
 
     bool lastIsMeter = false;
     float lastKey = 0;
     float lastMeter = 0;
 
-    for (const auto& frameNode : _node) {
+    for (const auto& frameNode : node) {
         if (!frameNode.IsSequence() || frameNode.size() != 2) { continue; }
         float key = frameNode[0].as<float>();
 
@@ -145,7 +145,7 @@ auto Stops::Widths(const YAML::Node& _node, const MapProjection& _projection, co
 
         if (StyleParam::parseValueUnitPair(frameNode[1].Scalar(), start, width)) {
             bool valid = false;
-            for (auto& unit : _units) {
+            for (auto& unit : units) {
                 if (width.unit == unit) {
                     valid = true;
                     break;
@@ -204,10 +204,10 @@ auto Stops::Numbers(const YAML::Node& node) -> Stops {
     return stops;
 }
 
-auto Stops::evalWidth(float _key) const -> float {
+auto Stops::evalWidth(float key) const -> float {
     if (frames.empty()) { return 0; }
 
-    auto upper = nearestHigherFrame(_key);
+    auto upper = nearestHigherFrame(key);
     auto lower = upper - 1;
 
     if (upper == frames.end())  {
@@ -217,25 +217,25 @@ auto Stops::evalWidth(float _key) const -> float {
         return upper->value.get<float>();
     }
 
-    if (upper->key <= _key) {
+    if (upper->key <= key) {
         return upper->value.get<float>();
     }
-    if (lower->key >= _key) {
+    if (lower->key >= key) {
         return lower->value.get<float>();
     }
 
     double range = exp2(upper->key - lower->key) - 1.0;
-    double pos = exp2(_key - lower->key) - 1.0;
+    double pos = exp2(key - lower->key) - 1.0;
 
     double lerp = pos / range;
 
     return lower->value.get<float>() * (1 - lerp) + upper->value.get<float>() * lerp;
 }
 
-auto Stops::evalFloat(float _key) const -> float {
+auto Stops::evalFloat(float key) const -> float {
     if (frames.empty()) { return 0; }
 
-    auto upper = nearestHigherFrame(_key);
+    auto upper = nearestHigherFrame(key);
     auto lower = upper - 1;
 
     if (upper == frames.end()) {
@@ -245,15 +245,15 @@ auto Stops::evalFloat(float _key) const -> float {
         return upper->value.get<float>();
     }
 
-    float lerp = (_key - lower->key) / (upper->key - lower->key);
+    float lerp = (key - lower->key) / (upper->key - lower->key);
 
     return (lower->value.get<float>() * (1 - lerp) + upper->value.get<float>() * lerp);
 }
 
-auto Stops::evalColor(float _key) const -> uint32_t {
+auto Stops::evalColor(float key) const -> uint32_t {
     if (frames.empty()) { return 0; }
 
-    auto upper = nearestHigherFrame(_key);
+    auto upper = nearestHigherFrame(key);
     auto lower = upper - 1;
     if (upper == frames.end())  {
         return lower->value.get<Color>().abgr;
@@ -262,15 +262,15 @@ auto Stops::evalColor(float _key) const -> uint32_t {
         return upper->value.get<Color>().abgr;
     }
 
-    float lerp = (_key - lower->key) / (upper->key - lower->key);
+    float lerp = (key - lower->key) / (upper->key - lower->key);
 
     return Color::mix(lower->value.get<Color>(), upper->value.get<Color>(), lerp).abgr;
 }
 
-auto Stops::evalVec2(float _key) const -> glm::vec2 {
+auto Stops::evalVec2(float key) const -> glm::vec2 {
     if (frames.empty()) { return glm::vec2{0.f}; }
 
-    auto upper = nearestHigherFrame(_key);
+    auto upper = nearestHigherFrame(key);
     auto lower = upper - 1;
 
     if (upper == frames.end()) {
@@ -280,7 +280,7 @@ auto Stops::evalVec2(float _key) const -> glm::vec2 {
         return upper->value.get<glm::vec2>();
     }
 
-    float lerp = (_key - lower->key) / (upper->key - lower->key);
+    float lerp = (key - lower->key) / (upper->key - lower->key);
 
     const glm::vec2& lowerVal = lower->value.get<glm::vec2>();
     const glm::vec2& upperVal = upper->value.get<glm::vec2>();
@@ -290,21 +290,21 @@ auto Stops::evalVec2(float _key) const -> glm::vec2 {
 
 }
 
-auto Stops::nearestHigherFrame(float _key) const -> std::vector<Frame>::const_iterator {
+auto Stops::nearestHigherFrame(float key) const -> std::vector<Frame>::const_iterator {
 
-    return std::lower_bound(frames.begin(), frames.end(), _key,
+    return std::lower_bound(frames.begin(), frames.end(), key,
                             [](const Frame& f, float z) { return f.key < z; });
 }
 
-void Stops::eval(const Stops& _stops, StyleParamKey _key, float _zoom, StyleParam::Value& _result) {
-    if (StyleParam::isColor(_key)) {
-        _result = _stops.evalColor(_zoom);
-    } else if (StyleParam::isWidth(_key)) {
-        _result = _stops.evalWidth(_zoom);
-    } else if (StyleParam::isOffsets(_key)) {
-        _result = _stops.evalVec2(_zoom);
+void Stops::eval(const Stops& stops, StyleParamKey key, float zoom, StyleParam::Value& result) {
+    if (StyleParam::isColor(key)) {
+        result = stops.evalColor(zoom);
+    } else if (StyleParam::isWidth(key)) {
+        result = stops.evalWidth(zoom);
+    } else if (StyleParam::isOffsets(key)) {
+        result = stops.evalVec2(zoom);
     } else {
-        _result = _stops.evalFloat(_zoom);
+        result = stops.evalFloat(zoom);
     }
 }
 

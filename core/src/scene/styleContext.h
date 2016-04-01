@@ -33,46 +33,46 @@ public:
     /*
      * Set currently processed Feature
      */
-    void setFeature(const Feature& _feature);
+    void setFeature(const Feature& feature);
 
     /*
      * Set global for currently processed Tile
      */
-    void setGlobalZoom(int _zoom);
+    void setGlobalZoom(int zoom);
 
     /* Called from Filter::eval */
     float getGlobalZoom() const { return m_globalZoom; }
 
-    const Value& getGlobal(FilterGlobal _key) const {
-        return m_globals[static_cast<uint8_t>(_key)];
+    const Value& getGlobal(FilterGlobal key) const {
+        return m_globals[static_cast<uint8_t>(key)];
     }
 
     /* Called from Filter::eval */
     bool evalFilter(FunctionID id);
 
     /* Called from DrawRule::eval */
-    bool evalStyle(FunctionID id, StyleParamKey _key, StyleParam::Value& _val);
+    bool evalStyle(FunctionID id, StyleParamKey key, StyleParam::Value& val);
 
     /*
-     * Setup filter and style functions from @_scene
+     * Setup filter and style functions from @scene
      */
-    void initFunctions(const Scene& _scene);
+    void initFunctions(const Scene& scene);
 
     /*
      * Unset Feature handle
      */
     void clear();
 
-    bool setFunctions(const std::vector<std::string>& _functions);
+    bool setFunctions(const std::vector<std::string>& functions);
 
-    void setGlobal(const std::string& _key, Value _value);
-    const Value& getGlobal(const std::string& _key) const;
+    void setGlobal(const std::string& key, Value value);
+    const Value& getGlobal(const std::string& key) const;
 
 private:
-    static int jsGetProperty(duk_context *_ctx);
-    static int jsHasProperty(duk_context *_ctx);
+    static int jsGetProperty(duk_context *ctx);
+    static int jsHasProperty(duk_context *ctx);
 
-    bool parseStyleResult(StyleParamKey _key, StyleParam::Value& _val) const;
+    bool parseStyleResult(StyleParamKey key, StyleParam::Value& val) const;
 
     std::array<Value, 4> m_globals;
     int m_globalGeom = -1;

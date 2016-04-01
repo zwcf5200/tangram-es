@@ -7,46 +7,46 @@
 
 namespace Tangram {
 
-void Filter::print(int _indent) const {
+void Filter::print(int indent) const {
 
     switch (data.get_type_index()) {
 
     case Data::type<OperatorAny>::value: {
-        logMsg("%*s any\n", _indent, "");
+        logMsg("%*s any\n", indent, "");
         for (const auto& filt : data.get<OperatorAny>().operands) {
-            filt.print(_indent + 2);
+            filt.print(indent + 2);
         }
         break;
     }
     case Data::type<OperatorAll>::value: {
-        logMsg("%*s all\n", _indent, "");
+        logMsg("%*s all\n", indent, "");
         for (const auto& filt : data.get<OperatorAll>().operands) {
-            filt.print(_indent + 2);
+            filt.print(indent + 2);
         }
         break;
     }
     case Data::type<OperatorNone>::value: {
-        logMsg("%*s none\n", _indent, "");
+        logMsg("%*s none\n", indent, "");
         for (const auto& filt : data.get<OperatorNone>().operands) {
-            filt.print(_indent + 2);
+            filt.print(indent + 2);
         }
         break;
     }
     case Data::type<Existence>::value: {
         auto& f = data.get<Existence>();
-        logMsg("%*s existence - key:%s\n", _indent, "", f.key.c_str());
+        logMsg("%*s existence - key:%s\n", indent, "", f.key.c_str());
         break;
     }
     case Data::type<EqualitySet>::value: {
         auto& f = data.get<EqualitySet>();
         if (f.values[0].is<std::string>()) {
-            logMsg("%*s equality set - global:%d key:%s val:%s\n", _indent, "",
+            logMsg("%*s equality set - global:%d key:%s val:%s\n", indent, "",
                    f.global != FilterGlobal::undefined,
                    f.key.c_str(),
                    f.values[0].get<std::string>().c_str());
         }
         if (f.values[0].is<double>()) {
-            logMsg("%*s equality - global:%d key:%s val:%f\n", _indent, "",
+            logMsg("%*s equality - global:%d key:%s val:%f\n", indent, "",
                    f.global != FilterGlobal::undefined,
                    f.key.c_str(),
                    f.values[0].get<double>());
@@ -56,13 +56,13 @@ void Filter::print(int _indent) const {
     case Data::type<Equality>::value: {
         auto& f = data.get<Equality>();
         if (f.value.is<std::string>()) {
-            logMsg("%*s equality - global:%d key:%s val:%s\n", _indent, "",
+            logMsg("%*s equality - global:%d key:%s val:%s\n", indent, "",
                    f.global != FilterGlobal::undefined,
                    f.key.c_str(),
                    f.value.get<std::string>().c_str());
         }
         if (f.value.is<double>()) {
-            logMsg("%*s equality - global:%d key:%s val:%f\n", _indent, "",
+            logMsg("%*s equality - global:%d key:%s val:%f\n", indent, "",
                    f.global != FilterGlobal::undefined,
                    f.key.c_str(),
                    f.value.get<double>());
@@ -71,13 +71,13 @@ void Filter::print(int _indent) const {
     }
     case Data::type<Range>::value: {
         auto& f = data.get<Range>();
-        logMsg("%*s range - global:%d key:%s min:%f max:%f\n", _indent, "",
+        logMsg("%*s range - global:%d key:%s min:%f max:%f\n", indent, "",
                f.global != FilterGlobal::undefined,
                f.key.c_str(), f.min, f.max);
         return;
     }
     case Data::type<Function>::value: {
-        logMsg("%*s function\n", _indent, "");
+        logMsg("%*s function\n", indent, "");
         break;
     }
     default:
@@ -208,8 +208,8 @@ int compareSetFilter(const Filter& a, const Filter& b) {
 }
 
 
-void Filter::sort(std::vector<Filter>& _filters) {
-    std::sort(_filters.begin(), _filters.end(),
+void Filter::sort(std::vector<Filter>& filters) {
+    std::sort(filters.begin(), filters.end(),
               [](Filter& a, Filter& b) {
 
                   // Sort simple filters by eval cost

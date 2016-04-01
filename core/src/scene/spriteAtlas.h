@@ -16,14 +16,14 @@ struct SpriteNode {
 class SpriteAtlas {
 
 public:
-    SpriteAtlas(std::shared_ptr<Texture> _texture, const std::string& _file);
+    SpriteAtlas(std::shared_ptr<Texture> texture, const std::string& file);
 
-    /* Creates a sprite node in the atlas located at _origin in the texture by a size in pixels _size */
-    void addSpriteNode(const std::string& _name, glm::vec2 _origin, glm::vec2 _size);
-    bool getSpriteNode(const std::string& _name, SpriteNode& _node) const;
+    /* Creates a sprite node in the atlas located at origin in the texture by a size in pixels size */
+    void addSpriteNode(const std::string& name, glm::vec2 origin, glm::vec2 size);
+    bool getSpriteNode(const std::string& name, SpriteNode& node) const;
 
     /* Bind the atlas in the driver */
-    void bind(GLuint _slot);
+    void bind(GLuint slot);
 
 private:
     std::map<std::string, SpriteNode> m_spritesNodes;

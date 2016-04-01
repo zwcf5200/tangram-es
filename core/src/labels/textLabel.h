@@ -46,14 +46,14 @@ public:
         uint8_t fontScale;
     };
 
-    TextLabel(Label::Transform _transform, Type _type, Label::Options _options,
-              LabelProperty::Anchor _anchor, TextLabel::FontVertexAttributes _attrib,
-              glm::vec2 _dim, TextLabels& _labels, Range _vertexRange);
+    TextLabel(Label::Transform transform, Type type, Label::Options options,
+              LabelProperty::Anchor anchor, TextLabel::FontVertexAttributes attrib,
+              glm::vec2 dim, TextLabels& labels, Range vertexRange);
 
-    void updateBBoxes(float _zoomFract) override;
+    void updateBBoxes(float zoomFract) override;
 
 protected:
-    void align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) override;
+    void align(glm::vec2& screenPosition, const glm::vec2& ap1, const glm::vec2& ap2) override;
     glm::vec2 m_anchor;
 
     void pushTransform() override;

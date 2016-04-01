@@ -12,24 +12,24 @@
 
 namespace Tangram {
 
-Texture::Texture(unsigned int _width, unsigned int _height, TextureOptions _options, bool _generateMipmaps)
-    : m_options(_options), m_generateMipmaps(_generateMipmaps) {
+Texture::Texture(unsigned int width, unsigned int height, TextureOptions options, bool generateMipmaps)
+    : m_options(options), m_generateMipmaps(generateMipmaps) {
 
     m_glHandle = 0;
     m_shouldResize = false;
     m_target = GL_TEXTURE_2D;
     m_generation = -1;
 
-    resize(_width, _height);
+    resize(width, height);
 }
 
-Texture::Texture(const std::string& _file, TextureOptions _options, bool _generateMipmaps)
-    : Texture(0u, 0u, _options, _generateMipmaps) {
+Texture::Texture(const std::string& file, TextureOptions options, bool generateMipmaps)
+    : Texture(0u, 0u, options, generateMipmaps) {
 
     unsigned int size;
     unsigned char* data;
 
-    data = bytesFromFile(_file.c_str(), PathType::resource, &size);
+    data = bytesFromFile(file.c_str(), PathType::resource, &size);
 
     loadPNG(data, size);
 
@@ -59,32 +59,32 @@ void Texture::loadPNG(const unsigned char* blob, unsigned int size) {
     stbi_image_free(pixels);
 }
 
-Texture::Texture(Texture&& _other) {
-    m_glHandle = _other.m_glHandle;
-    _other.m_glHandle = 0;
+Texture::Texture(Texture&& other) {
+    m_glHandle = other.m_glHandle;
+    other.m_glHandle = 0;
 
-    m_options = _other.m_options;
-    m_data = std::move(_other.m_data);
-    m_dirtyRanges = std::move(_other.m_dirtyRanges);
-    m_width = _other.m_width;
-    m_height = _other.m_height;
-    m_target = _other.m_target;
-    m_generation = _other.m_generation;
-    m_generateMipmaps = _other.m_generateMipmaps;
+    m_options = other.m_options;
+    m_data = std::move(other.m_data);
+    m_dirtyRanges = std::move(other.m_dirtyRanges);
+    m_width = other.m_width;
+    m_height = other.m_height;
+    m_target = other.m_target;
+    m_generation = other.m_generation;
+    m_generateMipmaps = other.m_generateMipmaps;
 }
 
-Texture& Texture::operator=(Texture&& _other) {
-    m_glHandle = _other.m_glHandle;
-    _other.m_glHandle = 0;
+Texture& Texture::operator=(Texture&& other) {
+    m_glHandle = other.m_glHandle;
+    other.m_glHandle = 0;
 
-    m_options = _other.m_options;
-    m_data = std::move(_other.m_data);
-    m_dirtyRanges = std::move(_other.m_dirtyRanges);
-    m_width = _other.m_width;
-    m_height = _other.m_height;
-    m_target = _other.m_target;
-    m_generation = _other.m_generation;
-    m_generateMipmaps = _other.m_generateMipmaps;
+    m_options = other.m_options;
+    m_data = std::move(other.m_data);
+    m_dirtyRanges = std::move(other.m_dirtyRanges);
+    m_width = other.m_width;
+    m_height = other.m_height;
+    m_target = other.m_target;
+    m_generation = other.m_generation;
+    m_generateMipmaps = other.m_generateMipmaps;
 
     return *this;
 }
@@ -102,17 +102,17 @@ Texture::~Texture() {
     }
 }
 
-void Texture::setData(const GLuint* _data, unsigned int _dataSize) {
+void Texture::setData(const GLuint* data, unsigned int dataSize) {
 
     if (m_data.size() > 0) { m_data.clear(); }
 
-    m_data.insert(m_data.begin(), _data, _data + _dataSize);
+    m_data.insert(m_data.begin(), data, data + dataSize);
 
     setDirty(0, m_height);
 }
 
-void Texture::setSubData(const GLuint* _subData, uint16_t _xoff, uint16_t _yoff,
-                         uint16_t _width, uint16_t _height, uint16_t _stride) {
+void Texture::setSubData(const GLuint* subData, uint16_t xoff, uint16_t yoff,
+                         uint16_t width, uint16_t height, uint16_t stride) {
 
     size_t bpp = bytesPerPixel();
     size_t divisor = sizeof(GLuint) / bpp;
@@ -123,20 +123,20 @@ void Texture::setSubData(const GLuint* _subData, uint16_t _xoff, uint16_t _yoff,
     }
 
     // update m_data with subdata
-    for (size_t row = 0; row < _height; row++) {
+    for (size_t row = 0; row < height; row++) {
 
-        size_t pos = ((_yoff + row) * m_width + _xoff) / divisor;
-        size_t posIn = (row * _stride) / divisor;
-        std::memcpy(&m_data[pos], &_subData[posIn], _width * bpp);
+        size_t pos = ((yoff + row) * m_width + xoff) / divisor;
+        size_t posIn = (row * stride) / divisor;
+        std::memcpy(&m_data[pos], &subData[posIn], width * bpp);
     }
 
-    setDirty(_yoff, _height);
+    setDirty(yoff, height);
 }
 
-void Texture::setDirty(size_t _yoff, size_t _height) {
+void Texture::setDirty(size_t yoff, size_t height) {
     // FIXME: check that dirty range is valid for texture size!
-    size_t max = _yoff + _height;
-    size_t min = _yoff;
+    size_t max = yoff + height;
+    size_t min = yoff;
 
     if (m_dirtyRanges.empty()) {
         m_dirtyRanges.push_back({min, max});
@@ -175,15 +175,15 @@ void Texture::setDirty(size_t _yoff, size_t _height) {
     }
 }
 
-void Texture::bind(GLuint _unit) {
-    RenderState::textureUnit(_unit);
+void Texture::bind(GLuint unit) {
+    RenderState::textureUnit(unit);
     RenderState::texture(m_target, m_glHandle);
 }
 
-void Texture::generate(GLuint _textureUnit) {
+void Texture::generate(GLuint textureUnit) {
     glGenTextures(1, &m_glHandle);
 
-    bind(_textureUnit);
+    bind(textureUnit);
 
     glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, m_options.filtering.min);
     glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, m_options.filtering.mag);
@@ -206,7 +206,7 @@ bool Texture::isValid() {
     return (RenderState::isValidGeneration(m_generation) && m_glHandle != 0);
 }
 
-void Texture::update(GLuint _textureUnit) {
+void Texture::update(GLuint textureUnit) {
 
     checkValidity();
 
@@ -223,10 +223,10 @@ void Texture::update(GLuint _textureUnit) {
 
     GLuint* data = m_data.size() > 0 ? m_data.data() : nullptr;
 
-    update(_textureUnit, data);
+    update(textureUnit, data);
 }
 
-void Texture::update(GLuint _textureUnit, const GLuint* data) {
+void Texture::update(GLuint textureUnit, const GLuint* data) {
 
     checkValidity();
 
@@ -236,9 +236,9 @@ void Texture::update(GLuint _textureUnit, const GLuint* data) {
 
     if (m_glHandle == 0) {
         // texture hasn't been initialized yet, generate it
-        generate(_textureUnit);
+        generate(textureUnit);
     } else {
-        bind(_textureUnit);
+        bind(textureUnit);
     }
 
     // resize or push data
@@ -271,9 +271,9 @@ void Texture::update(GLuint _textureUnit, const GLuint* data) {
     m_dirtyRanges.clear();
 }
 
-void Texture::resize(const unsigned int _width, const unsigned int _height) {
-    m_width = _width;
-    m_height = _height;
+void Texture::resize(const unsigned int width, const unsigned int height) {
+    m_width = width;
+    m_height = height;
 
     if (!(Hardware::supportsTextureNPOT) &&
         !(isPowerOfTwo(m_width) && isPowerOfTwo(m_height)) &&
@@ -288,8 +288,8 @@ void Texture::resize(const unsigned int _width, const unsigned int _height) {
     m_dirtyRanges.clear();
 }
 
-bool Texture::isRepeatWrapping(TextureWrapping _wrapping) {
-    return _wrapping.wraps == GL_REPEAT || _wrapping.wrapt == GL_REPEAT;
+bool Texture::isRepeatWrapping(TextureWrapping wrapping) {
+    return wrapping.wraps == GL_REPEAT || wrapping.wrapt == GL_REPEAT;
 }
 
 size_t Texture::bytesPerPixel() {

@@ -64,8 +64,8 @@ struct StyleParam {
 
     struct ValueUnitPair {
         ValueUnitPair() = default;
-        ValueUnitPair(float _value, Unit _unit)
-            : value(_value), unit(_unit) {}
+        ValueUnitPair(float value, Unit unit)
+            : value(value), unit(unit) {}
 
         float value;
         Unit unit = Unit::meter;
@@ -79,19 +79,19 @@ struct StyleParam {
     struct Width : ValueUnitPair {
 
         Width() = default;
-        Width(float _value) :
-            ValueUnitPair(_value, Unit::meter) {}
-        Width(float _value, Unit _unit)
-            : ValueUnitPair(_value, _unit) {}
+        Width(float value) :
+            ValueUnitPair(value, Unit::meter) {}
+        Width(float value, Unit unit)
+            : ValueUnitPair(value, unit) {}
 
-        Width(ValueUnitPair& _other) :
-            ValueUnitPair(_other) {}
+        Width(ValueUnitPair& other) :
+            ValueUnitPair(other) {}
 
-        bool operator==(const Width& _other) const {
-            return value == _other.value && unit == _other.unit;
+        bool operator==(const Width& other) const {
+            return value == other.value && unit == other.unit;
         }
-        bool operator!=(const Width& _other) const {
-            return value != _other.value || unit != _other.unit;
+        bool operator!=(const Width& other) const {
+            return value != other.value || unit != other.unit;
         }
     };
 
@@ -101,16 +101,16 @@ struct StyleParam {
         key(StyleParamKey::none),
         value(none_type{}) {};
 
-    StyleParam(const std::string& _key, const std::string& _value);
+    StyleParam(const std::string& key, const std::string& value);
 
-    StyleParam(StyleParamKey _key, std::string _value) :
-        key(_key),
-        value(std::move(_value)) {}
+    StyleParam(StyleParamKey key, std::string value) :
+        key(key),
+        value(std::move(value)) {}
 
-    StyleParam(StyleParamKey _key, Stops* _stops) :
-        key(_key),
+    StyleParam(StyleParamKey key, Stops* stops) :
+        key(key),
         value(none_type{}),
-        stops(_stops) {
+        stops(stops) {
     }
 
     StyleParamKey key;
@@ -118,37 +118,37 @@ struct StyleParam {
     Stops* stops = nullptr;
     int32_t function = -1;
 
-    bool operator<(const StyleParam& _rhs) const { return key < _rhs.key; }
+    bool operator<(const StyleParam& rhs) const { return key < rhs.key; }
     bool valid() const { return !value.is<none_type>() || stops != nullptr || function >= 0; }
     operator bool() const { return valid(); }
 
     std::string toString() const;
 
     /* parse a font size (in em, pt, %) and give the appropriate size in pixel */
-    static bool parseFontSize(const std::string& _size, float& _pxSize);
+    static bool parseFontSize(const std::string& size, float& pxSize);
 
-    static uint32_t parseColor(const std::string& _color);
+    static uint32_t parseColor(const std::string& color);
 
-    static bool parseTime(const std::string& _value, float& _time);
+    static bool parseTime(const std::string& value, float& time);
 
-    static bool parseVec2(const std::string& _value, const std::vector<Unit> _allowedUnits, glm::vec2& _vec2);
+    static bool parseVec2(const std::string& value, const std::vector<Unit> allowedUnits, glm::vec2& vec2);
 
-    static int parseValueUnitPair(const std::string& _value, size_t start,
-                                  StyleParam::ValueUnitPair& _result);
+    static int parseValueUnitPair(const std::string& value, size_t start,
+                                  StyleParam::ValueUnitPair& result);
 
-    static Value parseString(StyleParamKey key, const std::string& _value);
+    static Value parseString(StyleParamKey key, const std::string& value);
 
-    static bool isColor(StyleParamKey _key);
-    static bool isWidth(StyleParamKey _key);
-    static bool isOffsets(StyleParamKey _key);
-    static bool isFontSize(StyleParamKey _key);
-    static bool isRequired(StyleParamKey _key);
+    static bool isColor(StyleParamKey key);
+    static bool isWidth(StyleParamKey key);
+    static bool isOffsets(StyleParamKey key);
+    static bool isFontSize(StyleParamKey key);
+    static bool isRequired(StyleParamKey key);
 
-    static bool unitsForStyleParam(StyleParamKey _key, std::vector<Unit>& _unit);
+    static bool unitsForStyleParam(StyleParamKey key, std::vector<Unit>& unit);
 
-    static StyleParamKey getKey(const std::string& _key);
+    static StyleParamKey getKey(const std::string& key);
 
-    static const std::string& keyName(StyleParamKey _key);
+    static const std::string& keyName(StyleParamKey key);
 
     template<typename T>
     struct visitor {

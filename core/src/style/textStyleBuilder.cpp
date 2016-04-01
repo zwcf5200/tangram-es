@@ -20,12 +20,12 @@ namespace Tangram {
 const static std::string key_name("name");
 
 
-TextStyleBuilder::TextStyleBuilder(const TextStyle& _style)
-    : StyleBuilder(_style),
-      m_style(_style) {}
+TextStyleBuilder::TextStyleBuilder(const TextStyle& style)
+    : StyleBuilder(style),
+      m_style(style) {}
 
-void TextStyleBuilder::setup(const Tile& _tile){
-    m_tileSize = _tile.getProjection()->TileSize();
+void TextStyleBuilder::setup(const Tile& tile){
+    m_tileSize = tile.getProjection()->TileSize();
     m_quads.clear();
     m_labels.clear();
 
@@ -43,12 +43,12 @@ std::unique_ptr<StyledMesh> TextStyleBuilder::build() {
     return std::move(m_textLabels);
 }
 
-void TextStyleBuilder::addFeature(const Feature& _feat, const DrawRule& _rule) {
+void TextStyleBuilder::addFeature(const Feature& feat, const DrawRule& rule) {
 
-    TextStyle::Parameters params = applyRule(_rule, _feat.props);
+    TextStyle::Parameters params = applyRule(rule, feat.props);
 
     Label::Type labelType;
-    if (_feat.geometryType == GeometryType::lines) {
+    if (feat.geometryType == GeometryType::lines) {
         labelType = Label::Type::line;
         params.wordWrap = false;
     } else {
@@ -61,24 +61,24 @@ void TextStyleBuilder::addFeature(const Feature& _feat, const DrawRule& _rule) {
 
     if (!prepareLabel(params, labelType)) { return; }
 
-    if (_feat.geometryType == GeometryType::points) {
-        for (auto& point : _feat.points) {
+    if (feat.geometryType == GeometryType::points) {
+        for (auto& point : feat.points) {
             auto p = glm::vec2(point);
             addLabel(params, Label::Type::point, { p, p });
         }
 
-    } else if (_feat.geometryType == GeometryType::polygons) {
-        for (auto& polygon : _feat.polygons) {
+    } else if (feat.geometryType == GeometryType::polygons) {
+        for (auto& polygon : feat.polygons) {
             auto p = centroid(polygon);
             addLabel(params, Label::Type::point, { p, p });
         }
 
-    } else if (_feat.geometryType == GeometryType::lines) {
+    } else if (feat.geometryType == GeometryType::lines) {
 
         float pixel = 2.0 / (m_tileSize * m_style.pixelScale());
         float minLength = m_attributes.width * pixel * 0.2;
 
-        for (auto& line : _feat.lines) {
+        for (auto& line : feat.lines) {
             for (size_t i = 0; i < line.size() - 1; i++) {
                 glm::vec2 p1 = glm::vec2(line[i]);
                 glm::vec2 p2 = glm::vec2(line[i + 1]);
@@ -95,8 +95,8 @@ void TextStyleBuilder::addFeature(const Feature& _feat, const DrawRule& _rule) {
     }
 }
 
-TextStyle::Parameters TextStyleBuilder::applyRule(const DrawRule& _rule,
-                                                  const Properties& _props) const {
+TextStyle::Parameters TextStyleBuilder::applyRule(const DrawRule& rule,
+                                                  const Properties& props) const {
 
     const static std::string defaultWeight("400");
     const static std::string defaultStyle("normal");
@@ -105,55 +105,55 @@ TextStyle::Parameters TextStyleBuilder::applyRule(const DrawRule& _rule,
     TextStyle::Parameters p;
     glm::vec2 offset;
 
-    _rule.get(StyleParamKey::text_source, p.text);
-    if (!_rule.isJSFunction(StyleParamKey::text_source)) {
+    rule.get(StyleParamKey::text_source, p.text);
+    if (!rule.isJSFunction(StyleParamKey::text_source)) {
         if (p.text.empty()) {
-            p.text = _props.getString(key_name);
+            p.text = props.getString(key_name);
         } else {
-            p.text = resolveTextSource(p.text, _props);
+            p.text = resolveTextSource(p.text, props);
         }
     }
     if (p.text.empty()) { return p; }
 
-    auto fontFamily = _rule.get<std::string>(StyleParamKey::font_family);
+    auto fontFamily = rule.get<std::string>(StyleParamKey::font_family);
     fontFamily = (!fontFamily) ? &defaultFamily : fontFamily;
 
-    auto fontWeight = _rule.get<std::string>(StyleParamKey::font_weight);
+    auto fontWeight = rule.get<std::string>(StyleParamKey::font_weight);
     fontWeight = (!fontWeight) ? &defaultWeight : fontWeight;
 
-    auto fontStyle = _rule.get<std::string>(StyleParamKey::font_style);
+    auto fontStyle = rule.get<std::string>(StyleParamKey::font_style);
     fontStyle = (!fontStyle) ? &defaultStyle : fontStyle;
 
-    _rule.get(StyleParamKey::font_size, p.fontSize);
+    rule.get(StyleParamKey::font_size, p.fontSize);
     p.fontSize *= m_style.pixelScale();
 
     p.font = m_style.context()->getFont(*fontFamily, *fontStyle, *fontWeight, p.fontSize);
 
-    _rule.get(StyleParamKey::font_fill, p.fill);
-    _rule.get(StyleParamKey::offset, p.labelOptions.offset);
+    rule.get(StyleParamKey::font_fill, p.fill);
+    rule.get(StyleParamKey::offset, p.labelOptions.offset);
     p.labelOptions.offset *= m_style.pixelScale();
 
-    _rule.get(StyleParamKey::font_stroke_color, p.strokeColor);
-    _rule.get(StyleParamKey::font_stroke_width, p.strokeWidth);
+    rule.get(StyleParamKey::font_stroke_color, p.strokeColor);
+    rule.get(StyleParamKey::font_stroke_width, p.strokeWidth);
     p.strokeWidth *= m_style.pixelScale();
 
-    _rule.get(StyleParamKey::priority, p.labelOptions.priority);
-    _rule.get(StyleParamKey::collide, p.labelOptions.collide);
-    _rule.get(StyleParamKey::transition_hide_time, p.labelOptions.hideTransition.time);
-    _rule.get(StyleParamKey::transition_selected_time, p.labelOptions.selectTransition.time);
-    _rule.get(StyleParamKey::transition_show_time, p.labelOptions.showTransition.time);
-    _rule.get(StyleParamKey::text_wrap, p.maxLineWidth);
+    rule.get(StyleParamKey::priority, p.labelOptions.priority);
+    rule.get(StyleParamKey::collide, p.labelOptions.collide);
+    rule.get(StyleParamKey::transition_hide_time, p.labelOptions.hideTransition.time);
+    rule.get(StyleParamKey::transition_selected_time, p.labelOptions.selectTransition.time);
+    rule.get(StyleParamKey::transition_show_time, p.labelOptions.showTransition.time);
+    rule.get(StyleParamKey::text_wrap, p.maxLineWidth);
 
     size_t repeatGroupHash = 0;
     std::string repeatGroup;
-    if (_rule.get(StyleParamKey::repeat_group, repeatGroup)) {
+    if (rule.get(StyleParamKey::repeat_group, repeatGroup)) {
         hash_combine(repeatGroupHash, repeatGroup);
     } else {
-        repeatGroupHash = _rule.getParamSetHash();
+        repeatGroupHash = rule.getParamSetHash();
     }
 
     StyleParam::Width repeatDistance;
-    if (_rule.get(StyleParamKey::repeat_distance, repeatDistance)) {
+    if (rule.get(StyleParamKey::repeat_distance, repeatDistance)) {
         p.labelOptions.repeatDistance = repeatDistance.value;
     } else {
         p.labelOptions.repeatDistance = View::s_pixelsPerTile;
@@ -163,19 +163,19 @@ TextStyle::Parameters TextStyleBuilder::applyRule(const DrawRule& _rule,
     p.labelOptions.repeatGroup = repeatGroupHash;
     p.labelOptions.repeatDistance *= m_style.pixelScale();
 
-    if (_rule.get(StyleParamKey::interactive, p.interactive) && p.interactive) {
-        p.labelOptions.properties = std::make_shared<Properties>(_props);
+    if (rule.get(StyleParamKey::interactive, p.interactive) && p.interactive) {
+        p.labelOptions.properties = std::make_shared<Properties>(props);
     }
 
-    if (auto* anchor = _rule.get<std::string>(StyleParamKey::anchor)) {
+    if (auto* anchor = rule.get<std::string>(StyleParamKey::anchor)) {
         LabelProperty::anchor(*anchor, p.anchor);
     }
 
-    if (auto* transform = _rule.get<std::string>(StyleParamKey::transform)) {
+    if (auto* transform = rule.get<std::string>(StyleParamKey::transform)) {
         TextLabelProperty::transform(*transform, p.transform);
     }
 
-    if (auto* align = _rule.get<std::string>(StyleParamKey::align)) {
+    if (auto* align = rule.get<std::string>(StyleParamKey::align)) {
         bool res = TextLabelProperty::align(*align, p.align);
         if (!res) {
             switch(p.anchor) {
@@ -211,12 +211,12 @@ TextStyle::Parameters TextStyleBuilder::applyRule(const DrawRule& _rule,
 // TODO use icu transforms
 // http://source.icu-project.org/repos/icu/icu/trunk/source/samples/ustring/ustring.cpp
 
-std::string TextStyleBuilder::applyTextTransform(const TextStyle::Parameters& _params,
-                                                 const std::string& _string) {
+std::string TextStyleBuilder::applyTextTransform(const TextStyle::Parameters& params,
+                                                 const std::string& string) {
     std::locale loc;
-    std::string text = _string;
+    std::string text = string;
 
-    switch (_params.transform) {
+    switch (params.transform) {
         case TextLabelProperty::Transform::capitalize:
             text[0] = toupper(text[0], loc);
             if (text.size() > 1) {
@@ -271,10 +271,10 @@ std::string TextStyleBuilder::resolveTextSource(const std::string& textSource,
     return props.getString(key_name);
 }
 
-bool TextStyleBuilder::prepareLabel(TextStyle::Parameters& _params, Label::Type _type) {
+bool TextStyleBuilder::prepareLabel(TextStyle::Parameters& params, Label::Type type) {
 
-    if (_params.text.empty() || _params.fontSize <= 0.f) {
-        LOGD("invalid params: '%s' %f", _params.text.c_str(), _params.fontSize);
+    if (params.text.empty() || params.fontSize <= 0.f) {
+        LOGD("invalid params: '%s' %f", params.text.c_str(), params.fontSize);
         return false;
     }
 
@@ -282,15 +282,15 @@ bool TextStyleBuilder::prepareLabel(TextStyle::Parameters& _params, Label::Type 
     const std::string* renderText;
     std::string text;
 
-    if (_params.transform == TextLabelProperty::Transform::none) {
-        renderText = &_params.text;
+    if (params.transform == TextLabelProperty::Transform::none) {
+        renderText = &params.text;
     } else {
-        text = applyTextTransform(_params, _params.text);
+        text = applyTextTransform(params, params.text);
         renderText = &text;
     }
 
     // Scale factor by which the texture glyphs are scaled to match fontSize
-    _params.fontScale = _params.fontSize / _params.font->size();
+    params.fontScale = params.fontSize / params.font->size();
 
     // Stroke width is normalized by the distance of the SDF spread, then
     // scaled to 255 and packed into the "alpha" channel of stroke.
@@ -298,22 +298,22 @@ bool TextStyleBuilder::prepareLabel(TextStyle::Parameters& _params, Label::Type 
 
     auto ctx = m_style.context();
 
-    uint32_t strokeAttrib = std::max(_params.strokeWidth / ctx->maxStrokeWidth() * 255.f, 0.f);
+    uint32_t strokeAttrib = std::max(params.strokeWidth / ctx->maxStrokeWidth() * 255.f, 0.f);
     if (strokeAttrib > 255) {
-        LOGW("stroke_width too large: %f / %f", _params.strokeWidth, strokeAttrib/255.f);
+        LOGW("stroke_width too large: %f / %f", params.strokeWidth, strokeAttrib/255.f);
         strokeAttrib = 255;
     }
-    m_attributes.stroke = (_params.strokeColor & 0x00ffffff) + (strokeAttrib << 24);
-    m_attributes.fill = _params.fill;
-    m_attributes.fontScale = _params.fontScale * 64.f;
+    m_attributes.stroke = (params.strokeColor & 0x00ffffff) + (strokeAttrib << 24);
+    m_attributes.fill = params.fill;
+    m_attributes.fontScale = params.fontScale * 64.f;
     if (m_attributes.fontScale > 255) {
-        LOGW("Too large font scale %f, maximal scale is 4", _params.fontScale);
+        LOGW("Too large font scale %f, maximal scale is 4", params.fontScale);
         m_attributes.fontScale = 255;
     }
     m_attributes.quadsStart = m_quads.size();
 
     glm::vec2 bbox(0);
-    if (ctx->layoutText(_params, *renderText, m_quads, bbox)) {
+    if (ctx->layoutText(params, *renderText, m_quads, bbox)) {
         m_attributes.width = bbox.x;
         m_attributes.height = bbox.y;
         return true;
@@ -321,13 +321,13 @@ bool TextStyleBuilder::prepareLabel(TextStyle::Parameters& _params, Label::Type 
     return false;
 }
 
-void TextStyleBuilder::addLabel(const TextStyle::Parameters& _params, Label::Type _type,
-                                Label::Transform _transform) {
+void TextStyleBuilder::addLabel(const TextStyle::Parameters& params, Label::Type type,
+                                Label::Transform transform) {
 
     int quadsStart = m_attributes.quadsStart;
     int quadsCount = m_quads.size() - quadsStart;
 
-    m_labels.emplace_back(new TextLabel(_transform, _type, _params.labelOptions, _params.anchor,
+    m_labels.emplace_back(new TextLabel(transform, type, params.labelOptions, params.anchor,
                                         {m_attributes.fill, m_attributes.stroke, m_attributes.fontScale},
                                         {m_attributes.width, m_attributes.height},
                                         *m_textLabels, {quadsStart, quadsCount}));

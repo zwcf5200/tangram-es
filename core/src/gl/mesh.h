@@ -25,22 +25,22 @@ struct MeshBase {
 public:
     /*
      * Creates a Mesh for vertex data arranged in the structure described by
-     * _vertexLayout to be drawn using the OpenGL primitive type _drawMode
+     * vertexLayout to be drawn using the OpenGL primitive type drawMode
      */
-    MeshBase(std::shared_ptr<VertexLayout> _vertexlayout, GLenum _drawMode = GL_TRIANGLES,
-             GLenum _hint = GL_STATIC_DRAW);
+    MeshBase(std::shared_ptr<VertexLayout> vertexlayout, GLenum drawMode = GL_TRIANGLES,
+             GLenum hint = GL_STATIC_DRAW);
 
     MeshBase();
 
     /*
      * Set Vertex Layout for the mesh object
      */
-    void setVertexLayout(std::shared_ptr<VertexLayout> _vertexLayout);
+    void setVertexLayout(std::shared_ptr<VertexLayout> vertexLayout);
 
     /*
      * Set Draw mode for the mesh object
      */
-    void setDrawMode(GLenum _drawMode = GL_TRIANGLES);
+    void setDrawMode(GLenum drawMode = GL_TRIANGLES);
 
     /*
      * Destructs this Mesh and releases all associated OpenGL resources
@@ -56,13 +56,13 @@ public:
     /*
      * Sub data upload of the mesh, returns true if this results in a buffer binding
      */
-    void subDataUpload(GLbyte* _data = nullptr);
+    void subDataUpload(GLbyte* data = nullptr);
 
     /*
-     * Renders the geometry in this mesh using the ShaderProgram _shader; if
+     * Renders the geometry in this mesh using the ShaderProgram shader; if
      * geometry has not already been uploaded it will be uploaded at this point
      */
-    void draw(ShaderProgram& _shader);
+    void draw(ShaderProgram& shader);
 
     size_t bufferSize() const;
 
@@ -102,20 +102,20 @@ protected:
 
     bool checkValidity();
 
-    size_t compileIndices(const std::vector<std::pair<uint32_t, uint32_t>>& _offsets,
-                          const std::vector<uint16_t>& _indices, size_t _offset);
+    size_t compileIndices(const std::vector<std::pair<uint32_t, uint32_t>>& offsets,
+                          const std::vector<uint16_t>& indices, size_t offset);
 
-    void setDirty(GLintptr _byteOffset, GLsizei _byteSize);
+    void setDirty(GLintptr byteOffset, GLsizei byteSize);
 };
 
 template<class T>
 struct MeshData {
 
     MeshData() {}
-    MeshData(std::vector<uint16_t>&& _indices, std::vector<T>&& _vertices)
-        : indices(std::move(_indices)),
-          vertices(std::move(_vertices)) {
-        offsets.emplace_back(indices.size(), vertices.size());
+    MeshData(std::vector<uint16_t>&& indices, std::vector<T>&& vertices)
+        : indices(std::move(indices)),
+          vertices(std::move(vertices)) {
+        offsets.emplace_back(this->indices.size(), this->vertices.size());
     }
 
     std::vector<uint16_t> indices;
@@ -133,9 +133,9 @@ template<class T>
 class Mesh : public StyledMesh, protected MeshBase {
 public:
 
-    Mesh(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMode,
-         GLenum _hint = GL_STATIC_DRAW)
-        : MeshBase(_vertexLayout, _drawMode, _hint) {};
+    Mesh(std::shared_ptr<VertexLayout> vertexLayout, GLenum drawMode,
+         GLenum hint = GL_STATIC_DRAW)
+        : MeshBase(vertexLayout, drawMode, hint) {};
 
     virtual ~Mesh() {}
 
@@ -143,38 +143,38 @@ public:
         return MeshBase::bufferSize();
     }
 
-    void draw(ShaderProgram& _shader) override {
-        MeshBase::draw(_shader);
+    void draw(ShaderProgram& shader) override {
+        MeshBase::draw(shader);
     }
 
-    void compile(const std::vector<MeshData<T>>& _meshes);
+    void compile(const std::vector<MeshData<T>>& meshes);
 
-    void compile(const MeshData<T>& _mesh);
+    void compile(const MeshData<T>& mesh);
 
     /*
-     * Update _nVerts vertices in the mesh with the new T value _newVertexValue
-     * starting after _byteOffset in the mesh vertex data memory
+     * Update nVerts vertices in the mesh with the new T value newVertexValue
+     * starting after byteOffset in the mesh vertex data memory
      */
-    void updateVertices(Range _vertexRange, const T& _newVertexValue);
+    void updateVertices(Range vertexRange, const T& newVertexValue);
 
     /*
-     * Update _nVerts vertices in the mesh with the new attribute A
-     * _newAttributeValue starting after _byteOffset in the mesh vertex data
+     * Update nVerts vertices in the mesh with the new attribute A
+     * newAttributeValue starting after byteOffset in the mesh vertex data
      * memory
      */
     template<class A>
-    void updateAttribute(Range _vertexRange, const A& _newAttributeValue,
-                         size_t _attribOffset = 0);
+    void updateAttribute(Range vertexRange, const A& newAttributeValue,
+                         size_t attribOffset = 0);
 };
 
 
 template<class T>
-void Mesh<T>::compile(const std::vector<MeshData<T>>& _meshes) {
+void Mesh<T>::compile(const std::vector<MeshData<T>>& meshes) {
 
     m_nVertices = 0;
     m_nIndices = 0;
 
-    for (auto& m : _meshes) {
+    for (auto& m : meshes) {
         m_nVertices += m.vertices.size();
         m_nIndices += m.indices.size();
     }
@@ -183,7 +183,7 @@ void Mesh<T>::compile(const std::vector<MeshData<T>>& _meshes) {
     m_glVertexData = new GLbyte[m_nVertices * stride];
 
     size_t offset = 0;
-    for (auto& m : _meshes) {
+    for (auto& m : meshes) {
         size_t nBytes = m.vertices.size() * stride;
         std::memcpy(m_glVertexData + offset,
                     (const GLbyte*)m.vertices.data(),
@@ -198,7 +198,7 @@ void Mesh<T>::compile(const std::vector<MeshData<T>>& _meshes) {
         m_glIndexData = new GLushort[m_nIndices];
 
         size_t offset = 0;
-        for (auto& m : _meshes) {
+        for (auto& m : meshes) {
             offset = compileIndices(m.offsets, m.indices, offset);
         }
         assert(offset == m_nIndices);
@@ -208,21 +208,21 @@ void Mesh<T>::compile(const std::vector<MeshData<T>>& _meshes) {
 }
 
 template<class T>
-void Mesh<T>::compile(const MeshData<T>& _mesh) {
+void Mesh<T>::compile(const MeshData<T>& mesh) {
 
-    m_nVertices = _mesh.vertices.size();
-    m_nIndices = _mesh.indices.size();
+    m_nVertices = mesh.vertices.size();
+    m_nIndices = mesh.indices.size();
 
     int stride = m_vertexLayout->getStride();
     m_glVertexData = new GLbyte[m_nVertices * stride];
 
     std::memcpy(m_glVertexData,
-                (const GLbyte*)_mesh.vertices.data(),
+                (const GLbyte*)mesh.vertices.data(),
                 m_nVertices * stride);
 
     if (m_nIndices > 0) {
         m_glIndexData = new GLushort[m_nIndices];
-        compileIndices(_mesh.offsets, _mesh.indices, 0);
+        compileIndices(mesh.offsets, mesh.indices, 0);
     }
 
     m_isCompiled = true;
@@ -230,8 +230,8 @@ void Mesh<T>::compile(const MeshData<T>& _mesh) {
 
 template<class T>
 template<class A>
-void Mesh<T>::updateAttribute(Range _vertexRange, const A& _newAttributeValue,
-                              size_t _attribOffset) {
+void Mesh<T>::updateAttribute(Range vertexRange, const A& newAttributeValue,
+                              size_t attribOffset) {
 
     if (m_glVertexData == nullptr) {
         assert(false);
@@ -242,32 +242,32 @@ void Mesh<T>::updateAttribute(Range _vertexRange, const A& _newAttributeValue,
     const size_t tSize = sizeof(T);
     static_assert(aSize <= tSize, "Invalid attribute size");
 
-    if (_vertexRange.start < 0 || _vertexRange.length < 1) {
+    if (vertexRange.start < 0 || vertexRange.length < 1) {
         return;
     }
-    if (size_t(_vertexRange.start + _vertexRange.length) > m_nVertices) {
+    if (size_t(vertexRange.start + vertexRange.length) > m_nVertices) {
         //LOGW("Invalid range");
         return;
     }
-    if (_attribOffset >= tSize) {
+    if (attribOffset >= tSize) {
         //LOGW("Invalid attribute offset");
         return;
     }
 
-    size_t start = _vertexRange.start * tSize + _attribOffset;
-    size_t end = start + _vertexRange.length * tSize;
+    size_t start = vertexRange.start * tSize + attribOffset;
+    size_t end = start + vertexRange.length * tSize;
 
     // update the vertices attributes
     for (size_t offset = start; offset < end; offset += tSize) {
-        std::memcpy(m_glVertexData + offset, &_newAttributeValue, aSize);
+        std::memcpy(m_glVertexData + offset, &newAttributeValue, aSize);
     }
 
     // set all modified vertices dirty
-    setDirty(start, (_vertexRange.length - 1) * tSize + aSize);
+    setDirty(start, (vertexRange.length - 1) * tSize + aSize);
 }
 
 template<class T>
-void Mesh<T>::updateVertices(Range _vertexRange, const T& _newVertexValue) {
+void Mesh<T>::updateVertices(Range vertexRange, const T& newVertexValue) {
     if (m_glVertexData == nullptr) {
         assert(false);
         return;
@@ -275,17 +275,17 @@ void Mesh<T>::updateVertices(Range _vertexRange, const T& _newVertexValue) {
 
     size_t tSize = sizeof(T);
 
-    if (_vertexRange.start + _vertexRange.length > int(m_nVertices)) {
+    if (vertexRange.start + vertexRange.length > int(m_nVertices)) {
         return;
     }
 
 
-    size_t start = _vertexRange.start * tSize;
-    size_t end = start + _vertexRange.length * tSize;
+    size_t start = vertexRange.start * tSize;
+    size_t end = start + vertexRange.length * tSize;
 
     // update the vertices
     for (size_t offset = start; offset < end; offset += tSize) {
-        std::memcpy(m_glVertexData + offset, &_newVertexValue, tSize);
+        std::memcpy(m_glVertexData + offset, &newVertexValue, tSize);
     }
 
     setDirty(start, end - start);

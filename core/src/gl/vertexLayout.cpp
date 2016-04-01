@@ -6,7 +6,7 @@ namespace Tangram {
 
 fastmap<GLint, GLuint> VertexLayout::s_enabledAttribs = {};
 
-VertexLayout::VertexLayout(std::vector<VertexAttrib> _attribs) : m_attribs(_attribs) {
+VertexLayout::VertexLayout(std::vector<VertexAttrib> attribs) : m_attribs(attribs) {
 
     m_stride = 0;
 
@@ -44,31 +44,31 @@ VertexLayout::~VertexLayout() {
 
 }
 
-size_t VertexLayout::getOffset(std::string _attribName) {
+size_t VertexLayout::getOffset(std::string attribName) {
 
     for (auto& attrib : m_attribs) {
-        if (attrib.name == _attribName) {
+        if (attrib.name == attribName) {
             return attrib.offset;
         }
     }
 
-    LOGE("No such attribute %s", _attribName.c_str());
+    LOGE("No such attribute %s", attribName.c_str());
     return 0;
 }
 
-void VertexLayout::enable(const fastmap<std::string, GLuint>& _locations, size_t _byteOffset) {
+void VertexLayout::enable(const fastmap<std::string, GLuint>& locations, size_t byteOffset) {
 
     for (auto& attrib : m_attribs) {
-        auto it = _locations.find(attrib.name);
+        auto it = locations.find(attrib.name);
 
-        if (it == _locations.end()) {
+        if (it == locations.end()) {
             continue;
         }
 
         GLint location = it->second;;
 
         if (location != -1) {
-            void* offset = ((unsigned char*) attrib.offset) + _byteOffset;
+            void* offset = ((unsigned char*) attrib.offset) + byteOffset;
             glEnableVertexAttribArray(location);
             glVertexAttribPointer(location, attrib.size, attrib.type, attrib.normalized, m_stride, offset);
         }
@@ -80,14 +80,14 @@ void VertexLayout::clearCache() {
     s_enabledAttribs.clear();
 }
 
-void VertexLayout::enable(ShaderProgram& _program, size_t _byteOffset, void* _ptr) {
+void VertexLayout::enable(ShaderProgram& program, size_t byteOffset, void* ptr) {
 
-    GLuint glProgram = _program.getGlProgram();
+    GLuint glProgram = program.getGlProgram();
 
     // Enable all attributes for this layout
     for (auto& attrib : m_attribs) {
 
-        GLint location = _program.getAttribLocation(attrib.name);
+        GLint location = program.getAttribLocation(attrib.name);
 
         if (location != -1) {
             auto& loc = s_enabledAttribs[location];
@@ -97,7 +97,7 @@ void VertexLayout::enable(ShaderProgram& _program, size_t _byteOffset, void* _pt
                 loc = glProgram;
             }
 
-            void* data = (unsigned char*)_ptr + attrib.offset + _byteOffset;
+            void* data = (unsigned char*)ptr + attrib.offset + byteOffset;
             glVertexAttribPointer(location, attrib.size, attrib.type, attrib.normalized, m_stride, data);
         }
     }

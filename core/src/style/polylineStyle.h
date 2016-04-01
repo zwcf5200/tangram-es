@@ -15,7 +15,7 @@ protected:
 
 public:
 
-    PolylineStyle(std::string _name, Blending _blendMode = Blending::none, GLenum _drawMode = GL_TRIANGLES);
+    PolylineStyle(std::string name, Blending blendMode = Blending::none, GLenum drawMode = GL_TRIANGLES);
 
     virtual ~PolylineStyle() {}
 

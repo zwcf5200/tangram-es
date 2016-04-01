@@ -12,19 +12,19 @@ const float TextVertex::position_scale = 4.0f;
 const float TextVertex::rotation_scale = 4096.0f;
 const float TextVertex::alpha_scale = 255.f;
 
-TextLabel::TextLabel(Label::Transform _transform, Type _type, Label::Options _options,
-                     LabelProperty::Anchor _anchor, TextLabel::FontVertexAttributes _attrib,
-                     glm::vec2 _dim,  TextLabels& _labels, Range _vertexRange)
-    : Label(_transform, _dim, _type, _options),
-      m_textLabels(_labels),
-      m_vertexRange(_vertexRange),
-      m_fontAttrib(_attrib) {
+TextLabel::TextLabel(Label::Transform transform, Type type, Label::Options options,
+                     LabelProperty::Anchor anchor, TextLabel::FontVertexAttributes attrib,
+                     glm::vec2 dim,  TextLabels& labels, Range vertexRange)
+    : Label(transform, dim, type, options),
+      m_textLabels(labels),
+      m_vertexRange(vertexRange),
+      m_fontAttrib(attrib) {
 
     m_anchor = glm::vec2(0);
-    float width = _dim.x;
-    float height = _dim.y;
+    float width = dim.x;
+    float height = dim.y;
 
-    switch(_anchor) {
+    switch(anchor) {
     case Anchor::center:
         break;
     case Anchor::left:
@@ -58,7 +58,7 @@ TextLabel::TextLabel(Label::Transform _transform, Type _type, Label::Options _op
     }
 }
 
-void TextLabel::updateBBoxes(float _zoomFract) {
+void TextLabel::updateBBoxes(float zoomFract) {
 
     m_obb = OBB(m_transform.state.screenPos.x,
                 m_transform.state.screenPos.y,
@@ -69,16 +69,16 @@ void TextLabel::updateBBoxes(float _zoomFract) {
     m_aabb = m_obb.getExtent();
 }
 
-void TextLabel::align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) {
+void TextLabel::align(glm::vec2& screenPosition, const glm::vec2& ap1, const glm::vec2& ap2) {
 
     switch (m_type) {
         case Type::debug:
         case Type::point:
-            _screenPosition += m_anchor;
+            screenPosition += m_anchor;
             break;
         case Type::line: {
             // anchor at line center
-            _screenPosition = (_ap1 + _ap2) * 0.5f;
+            screenPosition = (ap1 + ap2) * 0.5f;
             break;
         }
     }
@@ -117,10 +117,10 @@ TextLabels::~TextLabels() {
     style.context()->releaseAtlas(m_atlasRefs);
 }
 
-void TextLabels::setQuads(std::vector<GlyphQuad>& _quads) {
-    quads.insert(quads.end(), _quads.begin(), _quads.end());
+void TextLabels::setQuads(std::vector<GlyphQuad>& quads) {
+    this->quads.insert(this->quads.end(), quads.begin(), quads.end());
 
-    for (auto& q : quads) {
+    for (auto& q : this->quads) {
         m_atlasRefs.set(q.atlas);
     }
 

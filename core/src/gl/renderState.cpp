@@ -35,14 +35,14 @@ namespace RenderState {
 
     ClearColor clearColor;
 
-    GLuint getTextureUnit(GLuint _unit) {
-        return GL_TEXTURE0 + _unit;
+    GLuint getTextureUnit(GLuint unit) {
+        return GL_TEXTURE0 + unit;
     }
 
-    void bindVertexBuffer(GLuint _id) { glBindBuffer(GL_ARRAY_BUFFER, _id); }
-    void bindIndexBuffer(GLuint _id) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id); }
-    void activeTextureUnit(GLuint _unit) { glActiveTexture(getTextureUnit(_unit)); }
-    void bindTexture(GLenum _target, GLuint _textureId) { glBindTexture(_target, _textureId); }
+    void bindVertexBuffer(GLuint id) { glBindBuffer(GL_ARRAY_BUFFER, id); }
+    void bindIndexBuffer(GLuint id) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id); }
+    void activeTextureUnit(GLuint unit) { glActiveTexture(getTextureUnit(unit)); }
+    void bindTexture(GLenum target, GLuint textureId) { glBindTexture(target, textureId); }
 
     void configure() {
         s_textureUnit = -1;
@@ -73,8 +73,8 @@ namespace RenderState {
         textureUnit.init(max, false);
     }
 
-    bool isValidGeneration(int _generation) {
-        return _generation == s_validGeneration;
+    bool isValidGeneration(int generation) {
+        return generation == s_validGeneration;
     }
 
     int generation() {

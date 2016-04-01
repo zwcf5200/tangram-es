@@ -8,33 +8,33 @@ namespace Tangram {
 class SpotLight : public PointLight {
 public:
 
-    SpotLight(const std::string& _name, bool _dynamic = false);
+    SpotLight(const std::string& name, bool dynamic = false);
     virtual ~SpotLight();
 
     /*  Set the direction of the light */
-    virtual void setDirection(const glm::vec3& _dir);
+    virtual void setDirection(const glm::vec3& dir);
 
     /*  Set the properties of the cutoff light cone */
-    virtual void setCutoffAngle(float _cutoffConeDegrees);
+    virtual void setCutoffAngle(float cutoffConeDegrees);
 
-    virtual void setCutoffExponent(float _exponent);
+    virtual void setCutoffExponent(float exponent);
 
-    virtual void setupProgram(const View& _view, LightUniforms& _uniforms) override;
+    virtual void setupProgram(const View& view, LightUniforms& uniforms) override;
 
     struct Uniforms : public PointLight::Uniforms {
 
-        Uniforms(ShaderProgram& _shader, const std::string& _name)
-            : PointLight::Uniforms(_shader, _name),
-            direction(_name+".direction"),
-            spotCosCutoff(_name+".spotCosCutoff"),
-            spotExponent(_name+".spotExponent") {}
+        Uniforms(ShaderProgram& shader, const std::string& name)
+            : PointLight::Uniforms(shader, name),
+            direction(name+".direction"),
+            spotCosCutoff(name+".spotCosCutoff"),
+            spotExponent(name+".spotExponent") {}
 
         UniformLocation direction;
         UniformLocation spotCosCutoff;
         UniformLocation spotExponent;
     };
 
-    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& _shader) override;
+    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& shader) override;
 
 protected:
     /*  GLSL block code with structs and need functions for this light type */

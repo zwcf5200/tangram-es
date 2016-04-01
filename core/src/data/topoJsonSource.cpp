@@ -10,34 +10,34 @@
 
 namespace Tangram {
 
-TopoJsonSource::TopoJsonSource(const std::string& _name, const std::string& _urlTemplate, int32_t maxZoom) :
-    DataSource(_name, _urlTemplate, maxZoom) {
+TopoJsonSource::TopoJsonSource(const std::string& name, const std::string& urlTemplate, int32_t maxZoom) :
+    DataSource(name, urlTemplate, maxZoom) {
 }
 
-std::shared_ptr<TileData> TopoJsonSource::parse(const TileTask& _task,
-                                                const MapProjection& _projection) const {
+std::shared_ptr<TileData> TopoJsonSource::parse(const TileTask& task,
+                                                const MapProjection& projection) const {
 
-    auto& task = static_cast<const DownloadTileTask&>(_task);
+    auto& dltask = static_cast<const DownloadTileTask&>(task);
 
     std::shared_ptr<TileData> tileData = std::make_shared<TileData>();
 
     // Parse data into a JSON document
     const char* error;
     size_t offset;
-    auto document = JsonParseBytes(task.rawTileData->data(), task.rawTileData->size(), &error, &offset);
+    auto document = JsonParseBytes(dltask.rawTileData->data(), dltask.rawTileData->size(), &error, &offset);
 
     if (error) {
-        LOGE("Json parsing failed on tile [%s]: %s (%u)", task.tileId().toString().c_str(), error, offset);
+        LOGE("Json parsing failed on tile [%s]: %s (%u)", dltask.tileId().toString().c_str(), error, offset);
         return tileData;
     }
 
     // Transform JSON data into a TileData using TopoJson functions
-    BoundingBox tileBounds(_projection.TileBounds(task.tileId()));
+    BoundingBox tileBounds(projection.TileBounds(dltask.tileId()));
     glm::dvec2 tileOrigin = {tileBounds.min.x, tileBounds.max.y*-1.0};
     double tileInverseScale = 1.0 / tileBounds.width();
 
-    const auto projFn = [&](glm::dvec2 _lonLat){
-        glm::dvec2 tmp = _projection.LonLatToMeters(_lonLat);
+    const auto projFn = [&](glm::dvec2 lonLat){
+        glm::dvec2 tmp = projection.LonLatToMeters(lonLat);
         return Point {
             (tmp.x - tileOrigin.x) * tileInverseScale,
             (tmp.y - tileOrigin.y) * tileInverseScale,

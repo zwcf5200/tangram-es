@@ -64,9 +64,9 @@ protected:
 
 public:
 
-    TextStyle(std::string _name, bool _sdf = false,
-              Blending _blendMode = Blending::overlay,
-              GLenum _drawMode = GL_TRIANGLES);
+    TextStyle(std::string name, bool sdf = false,
+              Blending blendMode = Blending::overlay,
+              GLenum drawMode = GL_TRIANGLES);
 
     /* Create the LabelMeshes associated with FontContext GlyphTexture<s>
      * No GL involved, called from Tangram::update()
@@ -82,7 +82,7 @@ public:
      * - First pass if signed distance field is on, draw outlines
      * - Second pass, draw the inner glyph pixels
      */
-    void onBeginDrawFrame(const View& _view, Scene& _scene) override;
+    void onBeginDrawFrame(const View& view, Scene& scene) override;
 
     DynamicQuadMesh<TextVertex>& getMesh(size_t id) const {
         if (id >= m_meshes.size()) {
@@ -112,7 +112,7 @@ public:
 
 private:
 
-    const std::string& applyTextSource(const Parameters& _parameters, const Properties& _props) const;
+    const std::string& applyTextSource(const Parameters& parameters, const Properties& props) const;
 };
 
 }

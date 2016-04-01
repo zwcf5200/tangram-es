@@ -25,41 +25,41 @@ public:
      * each of '{x}', '{y}', and '{z}' which will be replaced by the x index, y index,
      * and zoom level of tiles to produce their URL.
      */
-    DataSource(const std::string& _name, const std::string& _urlTemplate, int32_t _maxZoom = 18);
+    DataSource(const std::string& name, const std::string& urlTemplate, int32_t maxZoom = 18);
 
     virtual ~DataSource();
 
-    /* Fetches data for the map tile specified by @_tileID
+    /* Fetches data for the map tile specified by @tileID
      *
      * LoadTile starts an asynchronous I/O task to retrieve the data for a tile. When
-     * the I/O task is complete, the tile data is added to a queue in @_tileManager for
+     * the I/O task is complete, the tile data is added to a queue in @tileManager for
      * further processing before it is renderable.
      */
-    virtual bool loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb);
+    virtual bool loadTileData(std::shared_ptr<TileTask>&& task, TileTaskCb cb);
 
 
-    /* Stops any running I/O tasks pertaining to @_tile */
-    virtual void cancelLoadingTile(const TileID& _tile);
+    /* Stops any running I/O tasks pertaining to @tile */
+    virtual void cancelLoadingTile(const TileID& tile);
 
     /* Parse a <TileTask> with data into a <TileData>, returning an empty TileData on failure */
-    virtual std::shared_ptr<TileData> parse(const TileTask& _task, const MapProjection& _projection) const = 0;
+    virtual std::shared_ptr<TileData> parse(const TileTask& task, const MapProjection& projection) const = 0;
 
     /* Clears all data associated with this DataSource */
     virtual void clearData();
 
     const std::string& name() const { return m_name; }
 
-    virtual bool equals(const DataSource& _other) const {
-        return m_name == _other.m_name &&
-               m_urlTemplate == _other.m_urlTemplate;
+    virtual bool equals(const DataSource& other) const {
+        return m_name == other.m_name &&
+               m_urlTemplate == other.m_urlTemplate;
     }
 
-    virtual std::shared_ptr<TileTask> createTask(TileID _tile);
+    virtual std::shared_ptr<TileTask> createTask(TileID tile);
 
-    /* @_cacheSize: Set size of in-memory cache for tile data in bytes.
+    /* @cacheSize: Set size of in-memory cache for tile data in bytes.
      * This cache holds unprocessed tile data for fast recreation of recently used tiles.
      */
-    void setCacheSize(size_t _cacheSize);
+    void setCacheSize(size_t cacheSize);
 
     /* ID of this DataSource instance */
     int32_t id() const { return m_id; }
@@ -71,14 +71,14 @@ public:
 
 protected:
 
-    void onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task, TileTaskCb _cb);
+    void onTileLoaded(std::vector<char>&& rawData, std::shared_ptr<TileTask>& task, TileTaskCb cb);
 
     /* Constructs the URL of a tile using <m_urlTemplate> */
-    virtual void constructURL(const TileID& _tileCoord, std::string& _url) const;
+    virtual void constructURL(const TileID& tileCoord, std::string& url) const;
 
-    std::string constructURL(const TileID& _tileCoord) const {
+    std::string constructURL(const TileID& tileCoord) const {
         std::string url;
-        constructURL(_tileCoord, url);
+        constructURL(tileCoord, url);
         return url;
     }
 

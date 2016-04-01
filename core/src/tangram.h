@@ -19,16 +19,16 @@ class DataSource;
 
 // Create resources and initialize the map view using the scene file at the
 // given resource path
-void initialize(const char* _scenePath);
+void initialize(const char* scenePath);
 
 // Initialize graphics resources; OpenGL context must be created prior to calling this
 void setupGL();
 
 // Resize the map view to a new width and height (in pixels)
-void resize(int _newWidth, int _newHeight);
+void resize(int newWidth, int newHeight);
 
 // Update the map state with the time interval since the last update
-void update(float _dt);
+void update(float dt);
 
 // Render a new frame of the map view (if needed)
 void render();
@@ -36,18 +36,18 @@ void render();
 // Set the position of the map view in degrees longitude and latitude; if duration
 // (in seconds) is provided, position eases to the set value over the duration;
 // calling either version of the setter overrides all previous calls
-void setPosition(double _lon, double _lat);
-void setPosition(double _lon, double _lat, float _duration, EaseType _e = EaseType::quint);
+void setPosition(double lon, double lat);
+void setPosition(double lon, double lat, float duration, EaseType e = EaseType::quint);
 
 // Set the values of the arguments to the position of the map view in degrees
 // longitude and latitude
-void getPosition(double& _lon, double& _lat);
+void getPosition(double& lon, double& lat);
 
 // Set the fractional zoom level of the view; if duration (in seconds) is provided,
 // zoom eases to the set value over the duration; calling either version of the setter
 // overrides all previous calls
-void setZoom(float _z);
-void setZoom(float _z, float _duration, EaseType _e = EaseType::quint);
+void setZoom(float z);
+void setZoom(float z, float duration, EaseType e = EaseType::quint);
 
 // Get the fractional zoom level of the view
 float getZoom();
@@ -56,8 +56,8 @@ float getZoom();
 // North pointing up; if duration (in seconds) is provided, rotation eases to the
 // the set value over the duration; calling either version of the setter overrides
 // all previous calls
-void setRotation(float _radians);
-void setRotation(float _radians, float _duration, EaseType _e = EaseType::quint);
+void setRotation(float radians);
+void setRotation(float radians, float duration, EaseType e = EaseType::quint);
 
 // Get the counter-clockwise rotation of the view in radians; 0 corresponds to
 // North pointing up
@@ -66,69 +66,69 @@ float getRotation();
 // Set the tilt angle of the view in radians; 0 corresponds to straight down;
 // if duration (in seconds) is provided, tilt eases to the set value over the
 // duration; calling either version of the setter overrides all previous calls
-void setTilt(float _radians);
-void setTilt(float _radians, float _duration, EaseType _e = EaseType::quint);
+void setTilt(float radians);
+void setTilt(float radians, float duration, EaseType e = EaseType::quint);
 
 // Get the tilt angle of the view in radians; 0 corresponds to straight down
 float getTilt();
 
 // Transform coordinates in screen space (x right, y down) into their longitude
 // and latitude in the map view
-void screenToWorldCoordinates(double& _x, double& _y);
+void screenToWorldCoordinates(double& x, double& y);
 
 // Set the ratio of hardware pixels to logical pixels (defaults to 1.0)
-void setPixelScale(float _pixelsPerPoint);
+void setPixelScale(float pixelsPerPoint);
 
-// Set the CameraType based on the _cameraType value
-void setCameraType(uint8_t _cameraType);
+// Set the CameraType based on the cameraType value
+void setCameraType(uint8_t cameraType);
 
 // Get the current CameraType of the view
 uint8_t getCameraType();
 
 // Add a data source for adding drawable map data, which will be styled
 // according to the scene file using the provided data source name;
-void addDataSource(std::shared_ptr<DataSource> _source);
+void addDataSource(std::shared_ptr<DataSource> source);
 
 // Remove a data source from the map; returns true if the source was found
 // and removed, otherwise returns false.
-bool removeDataSource(DataSource& _source);
+bool removeDataSource(DataSource& source);
 
-void clearDataSource(DataSource& _source, bool _data, bool _tiles);
+void clearDataSource(DataSource& source, bool data, bool tiles);
 
 // Respond to a tap at the given screen coordinates (x right, y down)
-void handleTapGesture(float _posX, float _posY);
+void handleTapGesture(float posX, float posY);
 
 // Respond to a double tap at the given screen coordinates (x right, y down)
-void handleDoubleTapGesture(float _posX, float _posY);
+void handleDoubleTapGesture(float posX, float posY);
 
 // Respond to a drag with the given displacement in screen coordinates (x right, y down)
-void handlePanGesture(float _startX, float _startY, float _endX, float _endY);
+void handlePanGesture(float startX, float startY, float endX, float endY);
 
 // Respond to a fling from the given position with the given velocity in screen coordinates
-void handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY);
+void handleFlingGesture(float posX, float posY, float velocityX, float velocityY);
 
 // Respond to a pinch at the given position in screen coordinates with the given
 // incremental scale
-void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity);
+void handlePinchGesture(float posX, float posY, float scale, float velocity);
 
 // Respond to a rotation gesture with the given incremental rotation in radians
-void handleRotateGesture(float _posX, float _posY, float _rotation);
+void handleRotateGesture(float posX, float posY, float rotation);
 
 // Respond to a two-finger shove with the given distance in screen coordinates
-void handleShoveGesture(float _distance);
+void handleShoveGesture(float distance);
 
 // Set debug features on or off using a boolean (see debug.h)
-void setDebugFlag(DebugFlags _flag, bool _on);
+void setDebugFlag(DebugFlags flag, bool on);
 
 // Get the boolean state of a debug feature (see debug.h)
-bool getDebugFlag(DebugFlags _flag);
+bool getDebugFlag(DebugFlags flag);
 
 // Toggle the boolean state of a debug feature (see debug.h)
-void toggleDebugFlag(DebugFlags _flag);
+void toggleDebugFlag(DebugFlags flag);
 
-void loadScene(const char* _scenePath, bool _setPositionFromScene = false);
+void loadScene(const char* scenePath, bool setPositionFromScene = false);
 
-void runOnMainLoop(std::function<void()> _task);
+void runOnMainLoop(std::function<void()> task);
 
 struct TouchItem {
     std::shared_ptr<Properties> properties;
@@ -136,7 +136,7 @@ struct TouchItem {
     float distance;
 };
 
-const std::vector<TouchItem>& pickFeaturesAt(float _x, float _y);
+const std::vector<TouchItem>& pickFeaturesAt(float x, float y);
 
 float frameTime();
 

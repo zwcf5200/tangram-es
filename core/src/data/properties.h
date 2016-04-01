@@ -14,11 +14,11 @@ struct Properties {
     Properties();
     ~Properties();
 
-    Properties(const Properties& _other) = default;
-    Properties(Properties&& _other) = default;
-    Properties(std::vector<Item>&& _items);
-    Properties& operator=(const Properties& _other) = default;
-    Properties& operator=(Properties&& _other);
+    Properties(const Properties& other) = default;
+    Properties(Properties&& other) = default;
+    Properties(std::vector<Item>&& items);
+    Properties& operator=(const Properties& other) = default;
+    Properties& operator=(Properties&& other);
 
     const Value& get(const std::string& key) const;
 
@@ -47,7 +47,7 @@ struct Properties {
     void set(std::string key, std::string value);
     void set(std::string key, double value);
 
-    void setSorted(std::vector<Item>&& _items);
+    void setSorted(std::vector<Item>&& items);
 
     // template <typename... Args> void set(std::string key, Args&&... args) {
     //     props.emplace_back(std::move(key), Value{std::forward<Args>(args)...});

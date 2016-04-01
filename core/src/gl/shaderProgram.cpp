@@ -46,54 +46,54 @@ ShaderProgram::~ShaderProgram() {
 
 }
 
-void ShaderProgram::setSourceStrings(const std::string& _fragSrc, const std::string& _vertSrc){
-    m_fragmentShaderSource = std::string(_fragSrc);
-    m_vertexShaderSource = std::string(_vertSrc);
+void ShaderProgram::setSourceStrings(const std::string& fragSrc, const std::string& vertSrc){
+    m_fragmentShaderSource = std::string(fragSrc);
+    m_vertexShaderSource = std::string(vertSrc);
     m_needsBuild = true;
 }
 
-void ShaderProgram::addSourceBlock(const std::string& _tagName, const std::string& _glslSource, bool _allowDuplicate){
+void ShaderProgram::addSourceBlock(const std::string& tagName, const std::string& glslSource, bool allowDuplicate){
 
-    if (!_allowDuplicate) {
-        for (auto& source : m_sourceBlocks[_tagName]) {
-            if (_glslSource == source) {
+    if (!allowDuplicate) {
+        for (auto& source : m_sourceBlocks[tagName]) {
+            if (glslSource == source) {
                 return;
             }
         }
     }
 
-    m_sourceBlocks[_tagName].push_back(_glslSource);
+    m_sourceBlocks[tagName].push_back(glslSource);
     m_needsBuild = true;
 
     //  TODO:
     //          - add Global Blocks
 }
 
-GLint ShaderProgram::getAttribLocation(const std::string& _attribName) {
+GLint ShaderProgram::getAttribLocation(const std::string& attribName) {
 
     // Get uniform location at this key, or create one valued at -2 if absent
-    GLint& location = m_attribMap[_attribName].loc;
+    GLint& location = m_attribMap[attribName].loc;
 
     // -2 means this is a new entry
     if (location == -2) {
         // Get the actual location from OpenGL
-        location = glGetAttribLocation(m_glProgram, _attribName.c_str());
+        location = glGetAttribLocation(m_glProgram, attribName.c_str());
     }
 
     return location;
 
 }
 
-GLint ShaderProgram::getUniformLocation(const UniformLocation& _uniform) {
+GLint ShaderProgram::getUniformLocation(const UniformLocation& uniform) {
 
-    if (m_generation == _uniform.generation) {
-        return _uniform.location;
+    if (m_generation == uniform.generation) {
+        return uniform.location;
     }
 
-    _uniform.generation = m_generation;
-    _uniform.location = glGetUniformLocation(m_glProgram, _uniform.name.c_str());
+    uniform.generation = m_generation;
+    uniform.location = glGetUniformLocation(m_glProgram, uniform.name.c_str());
 
-    return _uniform.location;
+    return uniform.location;
 }
 
 bool ShaderProgram::use() {
@@ -167,11 +167,11 @@ bool ShaderProgram::build() {
     return true;
 }
 
-GLuint ShaderProgram::makeLinkedShaderProgram(GLint _fragShader, GLint _vertShader) {
+GLuint ShaderProgram::makeLinkedShaderProgram(GLint fragShader, GLint vertShader) {
 
     GLuint program = glCreateProgram();
-    glAttachShader(program, _fragShader);
-    glAttachShader(program, _vertShader);
+    glAttachShader(program, fragShader);
+    glAttachShader(program, vertShader);
     glLinkProgram(program);
 
     GLint isLinked;
@@ -193,10 +193,10 @@ GLuint ShaderProgram::makeLinkedShaderProgram(GLint _fragShader, GLint _vertShad
     return program;
 }
 
-GLuint ShaderProgram::makeCompiledShader(const std::string& _src, GLenum _type) {
+GLuint ShaderProgram::makeCompiledShader(const std::string& src, GLenum type) {
 
-    GLuint shader = glCreateShader(_type);
-    const GLchar* source = (const GLchar*) _src.c_str();
+    GLuint shader = glCreateShader(type);
+    const GLchar* source = (const GLchar*) src.c_str();
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
 
@@ -306,141 +306,141 @@ void ShaderProgram::checkValidity() {
     }
 }
 
-std::string ShaderProgram::getExtensionDeclaration(const std::string& _extension) {
+std::string ShaderProgram::getExtensionDeclaration(const std::string& extension) {
     std::ostringstream oss;
-    oss << "#if defined(GL_ES) == 0 || defined(GL_" << _extension << ")\n";
-    oss << "    #extension GL_" << _extension << " : enable\n";
-    oss << "    #define TANGRAM_EXTENSION_" << _extension << '\n';
+    oss << "#if defined(GL_ES) == 0 || defined(GL_" << extension << ")\n";
+    oss << "    #extension GL_" << extension << " : enable\n";
+    oss << "    #define TANGRAM_EXTENSION_" << extension << '\n';
     oss << "#endif\n";
     return oss.str();
 }
 
-void ShaderProgram::setUniformi(const UniformLocation& _loc, int _value) {
+void ShaderProgram::setUniformi(const UniformLocation& loc, int value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform1i(location, _value); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform1i(location, value); }
     }
 }
 
-void ShaderProgram::setUniformi(const UniformLocation& _loc, int _value0, int _value1) {
+void ShaderProgram::setUniformi(const UniformLocation& loc, int value0, int value1) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, glm::vec2(_value0, _value1));
-        if (!cached) { glUniform2i(location, _value0, _value1); }
+        bool cached = getFromCache(location, glm::vec2(value0, value1));
+        if (!cached) { glUniform2i(location, value0, value1); }
     }
 }
 
-void ShaderProgram::setUniformi(const UniformLocation& _loc, int _value0, int _value1, int _value2) {
+void ShaderProgram::setUniformi(const UniformLocation& loc, int value0, int value1, int value2) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, glm::vec3(_value0, _value1, _value2));
-        if (!cached) { glUniform3i(location, _value0, _value1, _value2); }
+        bool cached = getFromCache(location, glm::vec3(value0, value1, value2));
+        if (!cached) { glUniform3i(location, value0, value1, value2); }
     }
 }
 
-void ShaderProgram::setUniformi(const UniformLocation& _loc, int _value0, int _value1, int _value2, int _value3) {
+void ShaderProgram::setUniformi(const UniformLocation& loc, int value0, int value1, int value2, int value3) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, glm::vec4(_value0, _value1, _value2, _value3));
-        if (!cached) { glUniform4i(location, _value0, _value1, _value2, _value3); }
+        bool cached = getFromCache(location, glm::vec4(value0, value1, value2, value3));
+        if (!cached) { glUniform4i(location, value0, value1, value2, value3); }
     }
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, float _value) {
+void ShaderProgram::setUniformf(const UniformLocation& loc, float value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform1f(location, _value); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform1f(location, value); }
     }
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, float _value0, float _value1) {
-    setUniformf(_loc, glm::vec2(_value0, _value1));
+void ShaderProgram::setUniformf(const UniformLocation& loc, float value0, float value1) {
+    setUniformf(loc, glm::vec2(value0, value1));
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, float _value0, float _value1, float _value2) {
-    setUniformf(_loc, glm::vec3(_value0, _value1, _value2));
+void ShaderProgram::setUniformf(const UniformLocation& loc, float value0, float value1, float value2) {
+    setUniformf(loc, glm::vec3(value0, value1, value2));
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, float _value0, float _value1, float _value2, float _value3) {
-    setUniformf(_loc, glm::vec4(_value0, _value1, _value2, _value3));
+void ShaderProgram::setUniformf(const UniformLocation& loc, float value0, float value1, float value2, float value3) {
+    setUniformf(loc, glm::vec4(value0, value1, value2, value3));
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, const glm::vec2& _value) {
+void ShaderProgram::setUniformf(const UniformLocation& loc, const glm::vec2& value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform2f(location, _value.x, _value.y); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform2f(location, value.x, value.y); }
     }
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, const glm::vec3& _value) {
+void ShaderProgram::setUniformf(const UniformLocation& loc, const glm::vec3& value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform3f(location, _value.x, _value.y, _value.z); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform3f(location, value.x, value.y, value.z); }
     }
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, const glm::vec4& _value) {
+void ShaderProgram::setUniformf(const UniformLocation& loc, const glm::vec4& value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform4f(location, _value.x, _value.y, _value.z, _value.w); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform4f(location, value.x, value.y, value.z, value.w); }
     }
 }
 
-void ShaderProgram::setUniformMatrix2f(const UniformLocation& _loc, const glm::mat2& _value, bool _transpose) {
+void ShaderProgram::setUniformMatrix2f(const UniformLocation& loc, const glm::mat2& value, bool transpose) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = !_transpose && getFromCache(location, _value);
-        if (!cached) { glUniformMatrix2fv(location, 1, _transpose, glm::value_ptr(_value)); }
+        bool cached = !transpose && getFromCache(location, value);
+        if (!cached) { glUniformMatrix2fv(location, 1, transpose, glm::value_ptr(value)); }
     }
 }
 
-void ShaderProgram::setUniformMatrix3f(const UniformLocation& _loc, const glm::mat3& _value, bool _transpose) {
+void ShaderProgram::setUniformMatrix3f(const UniformLocation& loc, const glm::mat3& value, bool transpose) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = !_transpose && getFromCache(location, _value);
-        if (!cached) { glUniformMatrix3fv(location, 1, _transpose, glm::value_ptr(_value)); }
+        bool cached = !transpose && getFromCache(location, value);
+        if (!cached) { glUniformMatrix3fv(location, 1, transpose, glm::value_ptr(value)); }
     }
 }
 
-void ShaderProgram::setUniformMatrix4f(const UniformLocation& _loc, const glm::mat4& _value, bool _transpose) {
+void ShaderProgram::setUniformMatrix4f(const UniformLocation& loc, const glm::mat4& value, bool transpose) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = !_transpose && getFromCache(location, _value);
-        if (!cached) { glUniformMatrix4fv(location, 1, _transpose, glm::value_ptr(_value)); }
+        bool cached = !transpose && getFromCache(location, value);
+        if (!cached) { glUniformMatrix4fv(location, 1, transpose, glm::value_ptr(value)); }
     }
 }
 
-void ShaderProgram::setUniformf(const UniformLocation& _loc, const UniformArray& _value) {
+void ShaderProgram::setUniformf(const UniformLocation& loc, const UniformArray& value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform1fv(location, _value.size(), _value.data()); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform1fv(location, value.size(), value.data()); }
     }
 }
 
-void ShaderProgram::setUniformi(const UniformLocation& _loc, const UniformTextureArray& _value) {
+void ShaderProgram::setUniformi(const UniformLocation& loc, const UniformTextureArray& value) {
     use();
-    GLint location = getUniformLocation(_loc);
+    GLint location = getUniformLocation(loc);
     if (location >= 0) {
-        bool cached = getFromCache(location, _value);
-        if (!cached) { glUniform1iv(location, _value.slots.size(), _value.slots.data()); }
+        bool cached = getFromCache(location, value);
+        if (!cached) { glUniform1iv(location, value.slots.size(), value.slots.data()); }
     }
 }
 

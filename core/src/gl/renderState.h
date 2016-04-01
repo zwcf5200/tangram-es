@@ -12,17 +12,17 @@ namespace RenderState {
     /* Configure the render states */
     void configure();
     /* Get the texture slot from a texture unit from 0 to TANGRAM_MAX_TEXTURE_UNIT-1 */
-    GLuint getTextureUnit(GLuint _unit);
+    GLuint getTextureUnit(GLuint unit);
     /* Bind a vertex buffer */
-    void bindVertexBuffer(GLuint _id);
+    void bindVertexBuffer(GLuint id);
     /* Bind an index buffer */
-    void bindIndexBuffer(GLuint _id);
+    void bindIndexBuffer(GLuint id);
     /* Sets the currently active texture unit */
-    void activeTextureUnit(GLuint _unit);
+    void activeTextureUnit(GLuint unit);
     /* Bind a texture for the specified target */
-    void bindTexture(GLenum _target, GLuint _textureId);
+    void bindTexture(GLenum target, GLuint textureId);
 
-    bool isValidGeneration(int _generation);
+    bool isValidGeneration(int generation);
     int generation();
 
     int currentTextureUnit();
@@ -34,14 +34,14 @@ namespace RenderState {
     template <typename T>
     class State {
     public:
-        void init(const typename T::Type& _default) {
-            T::set(_default);
-            m_current = _default;
+        void init(const typename T::Type& value) {
+            T::set(value);
+            m_current = value;
         }
 
-        inline void operator()(const typename T::Type& _value) {
-            if (m_current != _value) {
-                m_current = _value;
+        inline void operator()(const typename T::Type& value) {
+            if (m_current != value) {
+                m_current = value;
                 T::set(m_current);
             }
         }
@@ -52,8 +52,8 @@ namespace RenderState {
     template <GLenum N>
     struct BoolSwitch {
         using Type = GLboolean;
-        inline static void set(const Type& _type) {
-            if (_type) {
+        inline static void set(const Type& type) {
+            if (type) {
                 glEnable(N);
             } else {
                 glDisable(N);
@@ -73,25 +73,25 @@ namespace RenderState {
         using Type = std::tuple<Args...>;
         Type params;
 
-        void init(Args... _param, bool _force = true) {
-            params = std::make_tuple(_param...);
-            if (_force) {
+        void init(Args... param, bool force = true) {
+            params = std::make_tuple(param...);
+            if (force) {
                 call(typename gens<sizeof...(Args)>::type());
             }
         }
 
-        inline void operator()(Args... _args) {
-            auto _params = std::make_tuple(_args...);
+        inline void operator()(Args... args) {
+            auto in_params = std::make_tuple(args...);
 
-            if (_params != params) {
-                params = _params;
+            if (in_params != params) {
+                params = in_params;
                 call(typename gens<sizeof...(Args)>::type());
             }
         }
 
-        inline bool compare(Args... _args) {
-            auto _params = std::make_tuple(_args...);
-            return _params == params;
+        inline bool compare(Args... args) {
+            auto in_params = std::make_tuple(args...);
+            return in_params == params;
         }
 
         template<int ...S>

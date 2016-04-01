@@ -7,12 +7,12 @@ namespace Tangram {
 class AmbientLight : public Light {
 public:
 
-    AmbientLight(const std::string& _name, bool _dynamic = false);
+    AmbientLight(const std::string& name, bool dynamic = false);
     virtual ~AmbientLight();
     
-    virtual void setupProgram(const View& _view, LightUniforms& _uniforms) override;
+    virtual void setupProgram(const View& view, LightUniforms& uniforms) override;
 
-    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& _shader) override;
+    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& shader) override;
 
 protected:
 

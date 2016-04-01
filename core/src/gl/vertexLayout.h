@@ -24,19 +24,19 @@ public:
         size_t offset; // Can be left as zero; value is overwritten in constructor of VertexLayout
     };
 
-    VertexLayout(std::vector<VertexAttrib> _attribs);
+    VertexLayout(std::vector<VertexAttrib> attribs);
 
     virtual ~VertexLayout();
 
-    void enable(ShaderProgram& _program, size_t _byteOffset, void* _ptr = nullptr);
+    void enable(ShaderProgram& program, size_t byteOffset, void* ptr = nullptr);
 
-    void enable(const fastmap<std::string, GLuint>& _locations, size_t _bytOffset);
+    void enable(const fastmap<std::string, GLuint>& locations, size_t bytOffset);
 
     GLint getStride() const { return m_stride; };
 
     const std::vector<VertexAttrib> getAttribs() const { return m_attribs; }
 
-    size_t getOffset(std::string _attribName);
+    size_t getOffset(std::string attribName);
 
     static void clearCache();
 

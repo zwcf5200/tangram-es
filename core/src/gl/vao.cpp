@@ -18,10 +18,10 @@ Vao::~Vao() {
     }
 }
 
-void Vao::init(ShaderProgram& _program, const std::vector<std::pair<uint32_t, uint32_t>>& _vertexOffsets,
-               VertexLayout& _layout, GLuint _vertexBuffer, GLuint _indexBuffer) {
+void Vao::init(ShaderProgram& program, const std::vector<std::pair<uint32_t, uint32_t>>& vertexOffsets,
+               VertexLayout& layout, GLuint vertexBuffer, GLuint indexBuffer) {
 
-    m_glnVAOs = _vertexOffsets.size();
+    m_glnVAOs = vertexOffsets.size();
     m_glVAOs = new GLuint[m_glnVAOs];
 
     glGenVertexArrays(m_glnVAOs, m_glVAOs);
@@ -29,34 +29,34 @@ void Vao::init(ShaderProgram& _program, const std::vector<std::pair<uint32_t, ui
     fastmap<std::string, GLuint> locations;
 
     // FIXME (use a bindAttrib instead of getLocation) to make those locations shader independent
-    for (auto& attrib : _layout.getAttribs()) {
-        GLint location = _program.getAttribLocation(attrib.name);
+    for (auto& attrib : layout.getAttribs()) {
+        GLint location = program.getAttribLocation(attrib.name);
         locations[attrib.name] = location;
     }
 
     int vertexOffset = 0;
-    for (size_t i = 0; i < _vertexOffsets.size(); ++i) {
-        auto vertexIndexOffset = _vertexOffsets[i];
+    for (size_t i = 0; i < vertexOffsets.size(); ++i) {
+        auto vertexIndexOffset = vertexOffsets[i];
         int nVerts = vertexIndexOffset.second;
         glBindVertexArray(m_glVAOs[i]);
 
-        RenderState::vertexBuffer.init(_vertexBuffer, true);
+        RenderState::vertexBuffer.init(vertexBuffer, true);
 
-        if (_indexBuffer != 0) {
-            RenderState::indexBuffer.init(_indexBuffer, true);
+        if (indexBuffer != 0) {
+            RenderState::indexBuffer.init(indexBuffer, true);
         }
 
         // Enable vertex layout on the specified locations
-        _layout.enable(locations, vertexOffset * _layout.getStride());
+        layout.enable(locations, vertexOffset * layout.getStride());
 
         vertexOffset += nVerts;
     }
 
 }
 
-void Vao::bind(unsigned int _index) {
-    if (_index < m_glnVAOs) {
-        glBindVertexArray(m_glVAOs[_index]);
+void Vao::bind(unsigned int index) {
+    if (index < m_glnVAOs) {
+        glBindVertexArray(m_glVAOs[index]);
     }
 }
 

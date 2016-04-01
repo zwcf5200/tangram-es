@@ -7,28 +7,28 @@ namespace Tangram {
 class PointLight : public Light {
 public:
 
-    PointLight(const std::string& _name, bool _dynamic = false);
+    PointLight(const std::string& name, bool dynamic = false);
     virtual ~PointLight();
 
     /*  Set the position relative to the camera */
-    virtual void setPosition(const glm::vec3& _pos);
+    virtual void setPosition(const glm::vec3& pos);
 
     /*  Set the constant attenuation */
-    virtual void setAttenuation(float _att);
+    virtual void setAttenuation(float att);
 
     /*  Set the constant outer radius or inner/outer radius*/
-    virtual void setRadius(float _outer);
-    virtual void setRadius(float _inner, float _outer);
+    virtual void setRadius(float outer);
+    virtual void setRadius(float inner, float outer);
 
-    virtual void setupProgram(const View& _view, LightUniforms& _uniforms) override;
+    virtual void setupProgram(const View& view, LightUniforms& uniforms) override;
 
     struct Uniforms : public LightUniforms {
-        Uniforms(ShaderProgram& _shader, const std::string& _name)
-            : LightUniforms(_shader, _name),
-              position(_name+".position"),
-              attenuation(_name+".attenuation"),
-              innerRadius(_name+".innerRadius"),
-              outerRadius(_name+".outerRadius") {}
+        Uniforms(ShaderProgram& shader, const std::string& name)
+            : LightUniforms(shader, name),
+              position(name+".position"),
+              attenuation(name+".attenuation"),
+              innerRadius(name+".innerRadius"),
+              outerRadius(name+".outerRadius") {}
 
         UniformLocation position;
         UniformLocation attenuation;
@@ -36,7 +36,7 @@ public:
         UniformLocation outerRadius;
     };
 
-    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& _shader) override;
+    std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& shader) override;
 
 protected:
 

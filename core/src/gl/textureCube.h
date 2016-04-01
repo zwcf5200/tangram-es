@@ -11,14 +11,14 @@ namespace Tangram {
 class TextureCube : public Texture {
     
 public:
-    TextureCube(std::string _file, TextureOptions _options =
+    TextureCube(std::string file, TextureOptions options =
                 {GL_RGBA, GL_RGBA, {GL_LINEAR, GL_LINEAR}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE}});
     
-    void update(GLuint _textureUnit) override;
+    void update(GLuint textureUnit) override;
     
-    void resize(const unsigned int _width, const unsigned int _height) = delete;
-    void setData(const GLuint* _data, unsigned int _dataSize) = delete;
-    void setSubData(const GLuint* _subData, unsigned int _xoff, unsigned int _yoff, unsigned int _width, unsigned int _height) = delete;
+    void resize(const unsigned int width, const unsigned int height) = delete;
+    void setData(const GLuint* data, unsigned int dataSize) = delete;
+    void setSubData(const GLuint* subData, unsigned int xoff, unsigned int yoff, unsigned int width, unsigned int height) = delete;
     
 private:
     
@@ -39,7 +39,7 @@ private:
     
     std::vector<Face> m_faces;
     
-    void load(const std::string& _file);
+    void load(const std::string& file);
 
 };
 

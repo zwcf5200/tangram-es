@@ -22,10 +22,10 @@ class SceneLayer {
 
 public:
 
-    SceneLayer(std::string _name, Filter _filter,
-               std::vector<DrawRuleData> _rules,
-               std::vector<SceneLayer> _sublayers,
-               bool _visible = true);
+    SceneLayer(std::string name, Filter filter,
+               std::vector<DrawRuleData> rules,
+               std::vector<SceneLayer> sublayers,
+               bool visible = true);
 
     const auto& name() const { return m_name; }
     const auto& filter() const { return m_filter; }
@@ -34,7 +34,7 @@ public:
     const auto& depth() const { return m_depth; }
     const auto& visible() const { return m_visible; }
 
-    void setDepth(size_t _d);
+    void setDepth(size_t d);
 };
 
 }

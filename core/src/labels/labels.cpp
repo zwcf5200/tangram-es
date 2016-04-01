@@ -27,19 +27,19 @@ Labels::Labels()
 
 Labels::~Labels() {}
 
-// int Labels::LODDiscardFunc(float _maxZoom, float _zoom) {
-//     return (int) MIN(floor(((log(-_zoom + (_maxZoom + 2)) / log(_maxZoom + 2) * (_maxZoom )) * 0.5)), MAX_LOD);
+// int Labels::LODDiscardFunc(float maxZoom, float zoom) {
+//     return (int) MIN(floor(((log(-zoom + (maxZoom + 2)) / log(maxZoom + 2) * (maxZoom )) * 0.5)), MAX_LOD);
 // }
 
-void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
-                          const std::vector<std::shared_ptr<Tile>>& _tiles,
-                          float _dt, float _dz, const View& _view)
+void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& styles,
+                          const std::vector<std::shared_ptr<Tile>>& tiles,
+                          float dt, float dz, const View& view)
 {
-    glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
+    glm::vec2 screenSize = glm::vec2(view.getWidth(), view.getHeight());
 
-    // int lodDiscard = LODDiscardFunc(View::s_maxZoom, _view.getZoom());
+    // int lodDiscard = LODDiscardFunc(View::s_maxZoom, view.getZoom());
 
-    for (const auto& tile : _tiles) {
+    for (const auto& tile : tiles) {
 
         // discard based on level of detail
         // if ((zoom - tile->getID().z) > lodDiscard) {
@@ -48,9 +48,9 @@ void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
 
         bool proxyTile = tile->isProxy();
 
-        glm::mat4 mvp = _view.getViewProjectionMatrix() * tile->getModelMatrix();
+        glm::mat4 mvp = view.getViewProjectionMatrix() * tile->getModelMatrix();
 
-        for (const auto& style : _styles) {
+        for (const auto& style : styles) {
             const auto& mesh = tile->getMesh(*style);
             if (!mesh) { continue; }
 
@@ -58,7 +58,7 @@ void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
             if (!labelMesh) { continue; }
 
             for (auto& label : labelMesh->getLabels()) {
-                if (!label->update(mvp, screenSize, _dz)) {
+                if (!label->update(mvp, screenSize, dz)) {
                     // skip dead labels
                     continue;
                 }
@@ -67,7 +67,7 @@ void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
                     m_labels.push_back(label.get());
 
                 } else {
-                    m_needUpdate |= label->evalState(screenSize, _dt);
+                    m_needUpdate |= label->evalState(screenSize, dt);
                     label->pushTransform();
                 }
             }
@@ -75,14 +75,14 @@ void Labels::updateLabels(const std::vector<std::unique_ptr<Style>>& _styles,
     }
 }
 
-void Labels::skipTransitions(const std::vector<const Style*>& _styles, Tile& _tile, Tile& _proxy) const {
+void Labels::skipTransitions(const std::vector<const Style*>& styles, Tile& tile, Tile& proxy) const {
 
-    for (const auto& style : _styles) {
+    for (const auto& style : styles) {
 
-        auto* mesh0 = dynamic_cast<const LabelSet*>(_tile.getMesh(*style).get());
+        auto* mesh0 = dynamic_cast<const LabelSet*>(tile.getMesh(*style).get());
         if (!mesh0) { continue; }
 
-        auto* mesh1 = dynamic_cast<const LabelSet*>(_proxy.getMesh(*style).get());
+        auto* mesh1 = dynamic_cast<const LabelSet*>(proxy.getMesh(*style).get());
         if (!mesh1) { continue; }
 
         for (auto& l0 : mesh0->getLabels()) {
@@ -109,72 +109,72 @@ void Labels::skipTransitions(const std::vector<const Style*>& _styles, Tile& _ti
     }
 }
 
-std::shared_ptr<Tile> findProxy(int32_t _sourceID, const TileID& _proxyID,
-                                const std::vector<std::shared_ptr<Tile>>& _tiles,
-                                std::unique_ptr<TileCache>& _cache) {
+std::shared_ptr<Tile> findProxy(int32_t sourceID, const TileID& proxyID,
+                                const std::vector<std::shared_ptr<Tile>>& tiles,
+                                std::unique_ptr<TileCache>& cache) {
 
-    auto proxy = _cache->contains(_sourceID, _proxyID);
+    auto proxy = cache->contains(sourceID, proxyID);
     if (proxy) { return proxy; }
 
-    for (auto& tile : _tiles) {
-        if (tile->getID() == _proxyID && tile->sourceID() == _sourceID) {
+    for (auto& tile : tiles) {
+        if (tile->getID() == proxyID && tile->sourceID() == sourceID) {
             return tile;
         }
     }
     return nullptr;
 }
 
-void Labels::skipTransitions(const std::vector<std::unique_ptr<Style>>& _styles,
-                             const std::vector<std::shared_ptr<Tile>>& _tiles,
-                             std::unique_ptr<TileCache>& _cache, float _currentZoom) const {
+void Labels::skipTransitions(const std::vector<std::unique_ptr<Style>>& styles,
+                             const std::vector<std::shared_ptr<Tile>>& tiles,
+                             std::unique_ptr<TileCache>& cache, float currentZoom) const {
 
-    std::vector<const Style*> styles;
+    std::vector<const Style*> stylePtrs;
 
-    for (const auto& style : _styles) {
+    for (const auto& style : styles) {
         if (dynamic_cast<const TextStyle*>(style.get()) ||
             dynamic_cast<const PointStyle*>(style.get())) {
-            styles.push_back(style.get());
+            stylePtrs.push_back(style.get());
         }
     }
 
-    for (const auto& tile : _tiles) {
+    for (const auto& tile : tiles) {
         TileID tileID = tile->getID();
         std::shared_ptr<Tile> proxy;
 
-        if (m_lastZoom < _currentZoom) {
+        if (m_lastZoom < currentZoom) {
             // zooming in, add the one cached parent tile
-            proxy = findProxy(tile->sourceID(), tileID.getParent(), _tiles, _cache);
-            if (proxy) { skipTransitions(styles, *tile, *proxy); }
+            proxy = findProxy(tile->sourceID(), tileID.getParent(), tiles, cache);
+            if (proxy) { skipTransitions(stylePtrs, *tile, *proxy); }
         } else {
             // zooming out, add the 4 cached children tiles
-            proxy = findProxy(tile->sourceID(), tileID.getChild(0), _tiles, _cache);
-            if (proxy) { skipTransitions(styles, *tile, *proxy); }
+            proxy = findProxy(tile->sourceID(), tileID.getChild(0), tiles, cache);
+            if (proxy) { skipTransitions(stylePtrs, *tile, *proxy); }
 
-            proxy = findProxy(tile->sourceID(), tileID.getChild(1), _tiles, _cache);
-            if (proxy) { skipTransitions(styles, *tile, *proxy); }
+            proxy = findProxy(tile->sourceID(), tileID.getChild(1), tiles, cache);
+            if (proxy) { skipTransitions(stylePtrs, *tile, *proxy); }
 
-            proxy = findProxy(tile->sourceID(), tileID.getChild(2), _tiles, _cache);
-            if (proxy) { skipTransitions(styles, *tile, *proxy); }
+            proxy = findProxy(tile->sourceID(), tileID.getChild(2), tiles, cache);
+            if (proxy) { skipTransitions(stylePtrs, *tile, *proxy); }
 
-            proxy = findProxy(tile->sourceID(), tileID.getChild(3), _tiles, _cache);
-            if (proxy) { skipTransitions(styles, *tile, *proxy); }
+            proxy = findProxy(tile->sourceID(), tileID.getChild(3), tiles, cache);
+            if (proxy) { skipTransitions(stylePtrs, *tile, *proxy); }
         }
     }
 }
 
-void Labels::checkRepeatGroups(std::vector<Label*>& _visibleSet) const {
+void Labels::checkRepeatGroups(std::vector<Label*>& visibleSet) const {
 
     struct GroupElement {
         Label* label;
 
-        bool operator==(const GroupElement& _ge) {
-            return _ge.label->center() == label->center();
+        bool operator==(const GroupElement& ge) {
+            return ge.label->center() == label->center();
         };
     };
 
     std::map<size_t, std::vector<GroupElement>> repeatGroups;
 
-    for (Label* textLabel : _visibleSet) {
+    for (Label* textLabel : visibleSet) {
         auto& options = textLabel->options();
         GroupElement element { textLabel };
 
@@ -216,33 +216,33 @@ void Labels::checkRepeatGroups(std::vector<Label*>& _visibleSet) const {
     }
 }
 
-void Labels::update(const View& _view, float _dt,
-                    const std::vector<std::unique_ptr<Style>>& _styles,
-                    const std::vector<std::shared_ptr<Tile>>& _tiles,
-                    std::unique_ptr<TileCache>& _cache)
+void Labels::update(const View& view, float dt,
+                    const std::vector<std::unique_ptr<Style>>& styles,
+                    const std::vector<std::shared_ptr<Tile>>& tiles,
+                    std::unique_ptr<TileCache>& cache)
 {
     // Could clear this at end of function unless debug draw is active
     m_labels.clear();
     m_aabbs.clear();
 
-    float currentZoom = _view.getZoom();
+    float currentZoom = view.getZoom();
     float dz = currentZoom - std::floor(currentZoom);
 
     /// Collect and update labels from visible tiles
 
-    updateLabels(_styles, _tiles, _dt, dz, _view);
+    updateLabels(styles, tiles, dt, dz, view);
 
     /// Mark labels to skip transitions
 
-    if (int(m_lastZoom) != int(_view.getZoom())) {
-        skipTransitions(_styles, _tiles, _cache, currentZoom);
+    if (int(m_lastZoom) != int(view.getZoom())) {
+        skipTransitions(styles, tiles, cache, currentZoom);
     }
 
     /// Manage occlusions
 
     // Update collision context size
-    m_isect2d.resize({_view.getWidth() / 256, _view.getHeight() / 256},
-                     {_view.getWidth(), _view.getHeight()});
+    m_isect2d.resize({view.getWidth() / 256, view.getHeight() / 256},
+                     {view.getWidth(), view.getHeight()});
 
     // Broad phase collision detection
     for (auto* label : m_labels) {
@@ -327,9 +327,9 @@ void Labels::update(const View& _view, float _dt,
 
     // Ensure the labels are always treated in the same order in the visible set
     std::sort(repeatGroupSet.begin(), repeatGroupSet.end(),
-              [](auto* _a, auto* _b) {
-        return glm::length2(_a->transform().modelPosition1) <
-               glm::length2(_b->transform().modelPosition1);
+              [](auto* a, auto* b) {
+        return glm::length2(a->transform().modelPosition1) <
+               glm::length2(b->transform().modelPosition1);
     });
 
     checkRepeatGroups(repeatGroupSet);
@@ -337,11 +337,11 @@ void Labels::update(const View& _view, float _dt,
 
     /// Update label meshes
 
-    glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
+    glm::vec2 screenSize = glm::vec2(view.getWidth(), view.getHeight());
 
     m_needUpdate = false;
     for (auto* label : m_labels) {
-        m_needUpdate |= label->evalState(screenSize, _dt);
+        m_needUpdate |= label->evalState(screenSize, dt);
         label->pushTransform();
     }
 
@@ -353,28 +353,28 @@ void Labels::update(const View& _view, float _dt,
     m_lastZoom = currentZoom;
 }
 
-const std::vector<TouchItem>& Labels::getFeaturesAtPoint(const View& _view, float _dt,
-                                                         const std::vector<std::unique_ptr<Style>>& _styles,
-                                                         const std::vector<std::shared_ptr<Tile>>& _tiles,
-                                                         float _x, float _y, bool _visibleOnly) {
+const std::vector<TouchItem>& Labels::getFeaturesAtPoint(const View& view, float dt,
+                                                         const std::vector<std::unique_ptr<Style>>& styles,
+                                                         const std::vector<std::shared_ptr<Tile>>& tiles,
+                                                         float x, float y, bool visibleOnly) {
     // FIXME dpi dependent threshold
     const float thumbSize = 50;
 
     m_touchItems.clear();
 
-    glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
-    glm::vec2 touchPoint(_x, _y);
+    glm::vec2 screenSize = glm::vec2(view.getWidth(), view.getHeight());
+    glm::vec2 touchPoint(x, y);
 
-    OBB obb(_x - thumbSize/2, _y - thumbSize/2, 0, thumbSize, thumbSize);
+    OBB obb(x - thumbSize/2, y - thumbSize/2, 0, thumbSize, thumbSize);
 
-    float z = _view.getZoom();
+    float z = view.getZoom();
     float dz = z - std::floor(z);
 
-    for (const auto& tile : _tiles) {
+    for (const auto& tile : tiles) {
 
-        glm::mat4 mvp = _view.getViewProjectionMatrix() * tile->getModelMatrix();
+        glm::mat4 mvp = view.getViewProjectionMatrix() * tile->getModelMatrix();
 
-        for (const auto& style : _styles) {
+        for (const auto& style : styles) {
             const auto& mesh = tile->getMesh(*style);
             if (!mesh) { continue; }
 
@@ -386,7 +386,7 @@ const std::vector<TouchItem>& Labels::getFeaturesAtPoint(const View& _view, floa
                 auto& options = label->options();
                 if (!options.interactive) { continue; }
 
-                if (!_visibleOnly) {
+                if (!visibleOnly) {
                     label->updateScreenTransform(mvp, screenSize, false);
                     label->updateBBoxes(dz);
                 } else if (!label->visibleState()) {
@@ -409,7 +409,7 @@ const std::vector<TouchItem>& Labels::getFeaturesAtPoint(const View& _view, floa
     return m_touchItems;
 }
 
-void Labels::drawDebug(const View& _view) {
+void Labels::drawDebug(const View& view) {
 
     if (!Tangram::getDebugFlag(Tangram::DebugFlags::labels)) {
         return;
@@ -473,8 +473,8 @@ void Labels::drawDebug(const View& _view) {
         }
     }
 
-    glm::vec2 split(_view.getWidth() / 256, _view.getHeight() / 256);
-    glm::vec2 res(_view.getWidth(), _view.getHeight());
+    glm::vec2 split(view.getWidth() / 256, view.getHeight() / 256);
+    glm::vec2 res(view.getWidth(), view.getHeight());
     const short xpad = short(ceilf(res.x / split.x));
     const short ypad = short(ceilf(res.y / split.y));
 

@@ -7,7 +7,7 @@
 
 namespace Tangram {
 
-Skybox::Skybox(std::string _file) : m_file(_file) {}
+Skybox::Skybox(std::string file) : m_file(file) {}
 
 void Skybox::init() {
 
@@ -41,12 +41,12 @@ void Skybox::init() {
          {  1.0,  1.0, -1.0 }}});
 }
 
-void Skybox::draw(const View& _view) {
+void Skybox::draw(const View& view) {
 
     m_texture->update(0);
     m_texture->bind(0);
 
-    glm::mat4 vp = _view.getViewProjectionMatrix();
+    glm::mat4 vp = view.getViewProjectionMatrix();
 
     // Remove translation so that skybox is centered on view
     vp[3] = { 0, 0, 0, 0 };

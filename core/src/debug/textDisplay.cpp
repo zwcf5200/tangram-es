@@ -75,12 +75,12 @@ void TextDisplay::log(const char* fmt, ...) {
     }
 }
 
-void TextDisplay::draw(const std::string& _text, int _posx, int _posy) {
+void TextDisplay::draw(const std::string& text, int posx, int posy) {
     static VertexLayout vertexLayout({{"a_position", 2, GL_FLOAT, false, 0}});
     std::vector<glm::vec2> vertices;
     int nquads;
 
-    nquads = stb_easy_font_print(_posx, _posy, _text.c_str(), NULL, m_vertexBuffer, VERTEX_BUFFER_SIZE);
+    nquads = stb_easy_font_print(posx, posy, text.c_str(), NULL, m_vertexBuffer, VERTEX_BUFFER_SIZE);
 
     float* data = reinterpret_cast<float*>(m_vertexBuffer);
 
@@ -98,7 +98,7 @@ void TextDisplay::draw(const std::string& _text, int _posx, int _posy) {
     glDrawArrays(GL_TRIANGLES, 0, nquads * 6);
 }
 
-void TextDisplay::draw(const std::vector<std::string>& _infos) {
+void TextDisplay::draw(const std::vector<std::string>& infos) {
     GLint boundbuffer = -1;
 
     RenderState::culling(GL_FALSE);
@@ -117,7 +117,7 @@ void TextDisplay::draw(const std::vector<std::string>& _infos) {
     // Display Tangram info messages
     m_shader->setUniformf(m_uColor, 0.f, 0.f, 0.f);
     int offset = 0;
-    for (auto& text : _infos) {
+    for (auto& text : infos) {
         draw(text, 3, 3 + offset);
         offset += 10;
     }

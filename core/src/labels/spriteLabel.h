@@ -31,12 +31,12 @@ struct SpriteVertex {
 class SpriteLabel : public Label {
 public:
 
-    SpriteLabel(Label::Transform _transform, glm::vec2 _size, Label::Options _options,
-                float _extrudeScale, LabelProperty::Anchor _anchor,
-                SpriteLabels& _labels, size_t _labelsPos);
+    SpriteLabel(Label::Transform transform, glm::vec2 size, Label::Options options,
+                float extrudeScale, LabelProperty::Anchor anchor,
+                SpriteLabels& labels, size_t labelsPos);
 
-    void updateBBoxes(float _zoomFract) override;
-    void align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) override;
+    void updateBBoxes(float zoomFract) override;
+    void align(glm::vec2& screenPosition, const glm::vec2& ap1, const glm::vec2& ap2) override;
 
     void pushTransform() override;
 
@@ -61,10 +61,10 @@ struct SpriteQuad {
 
 class SpriteLabels : public LabelSet {
 public:
-    SpriteLabels(const PointStyle& _style) : m_style(_style) {}
+    SpriteLabels(const PointStyle& style) : m_style(style) {}
 
-    void setQuads(std::vector<SpriteQuad>& _quads) {
-        quads.insert(quads.end(), _quads.begin(), _quads.end());
+    void setQuads(std::vector<SpriteQuad>& quads) {
+        this->quads.insert(this->quads.end(), quads.begin(), quads.end());
     }
 
     // TODO: hide within class if needed

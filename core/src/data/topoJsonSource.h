@@ -8,12 +8,12 @@ class TopoJsonSource : public DataSource {
 
 protected:
 
-    virtual std::shared_ptr<TileData> parse(const TileTask& _task,
-                                            const MapProjection& _projection) const override;
+    virtual std::shared_ptr<TileData> parse(const TileTask& task,
+                                            const MapProjection& projection) const override;
 
 public:
 
-    TopoJsonSource(const std::string& _name, const std::string& _urlTemplate, int32_t maxZoom);
+    TopoJsonSource(const std::string& name, const std::string& urlTemplate, int32_t maxZoom);
 
 };
 

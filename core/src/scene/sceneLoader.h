@@ -36,8 +36,8 @@ struct StyleUniform {
 struct SceneLoader {
     using Node = YAML::Node;
 
-    static bool loadScene(const std::string& _sceneString, Scene& _scene);
-    static bool loadScene(Node& config, Scene& _scene);
+    static bool loadScene(const std::string& sceneString, Scene& scene);
+    static bool loadScene(Node& config, Scene& scene);
 
     /*** all public for testing ***/
 
@@ -54,7 +54,7 @@ struct SceneLoader {
     static Filter generateFilter(Node filter, Scene& scene);
     static Filter generateAnyFilter(Node filter, Scene& scene);
     static Filter generateNoneFilter(Node filter, Scene& scene);
-    static Filter generatePredicate(Node filter, std::string _key);
+    static Filter generatePredicate(Node filter, std::string key);
     /* loads a texture with default texture properties */
     static bool loadTexture(const std::string& url, Scene& scene);
 

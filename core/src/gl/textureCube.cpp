@@ -8,20 +8,20 @@
 
 namespace Tangram {
 
-TextureCube::TextureCube(std::string _file, TextureOptions _options) : Texture(0u, 0u, _options) {
+TextureCube::TextureCube(std::string file, TextureOptions options) : Texture(0u, 0u, options) {
 
     m_target = GL_TEXTURE_CUBE_MAP;
-    load(_file);
+    load(file);
 }
 
-void TextureCube::load(const std::string& _file) {
+void TextureCube::load(const std::string& file) {
     unsigned int size;
-    unsigned char* data = bytesFromFile(_file.c_str(), PathType::resource, &size);
+    unsigned char* data = bytesFromFile(file.c_str(), PathType::resource, &size);
     unsigned char* pixels;
     int width, height, comp;
 
     if (data == nullptr || size == 0) {
-        LOGE("Texture not found! '%s'", _file.c_str());
+        LOGE("Texture not found! '%s'", file.c_str());
         return;
     }
 
@@ -64,13 +64,13 @@ void TextureCube::load(const std::string& _file) {
 
 }
 
-void TextureCube::update(GLuint _textureUnit) {
+void TextureCube::update(GLuint textureUnit) {
 
     checkValidity();
 
     if (m_glHandle != 0 || m_faces.size() == 0) { return; }
 
-    generate(_textureUnit);
+    generate(textureUnit);
 
     for (int i = 0; i < 6; ++i) {
         Face& f = m_faces[i];

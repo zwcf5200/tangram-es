@@ -11,8 +11,8 @@
 
 namespace Tangram {
 
-TextStyle::TextStyle(std::string _name, bool _sdf, Blending _blendMode, GLenum _drawMode) :
-    Style(_name, _blendMode, _drawMode), m_sdf(_sdf),
+TextStyle::TextStyle(std::string name, bool sdf, Blending blendMode, GLenum drawMode) :
+    Style(name, blendMode, drawMode), m_sdf(sdf),
     m_context(std::make_shared<FontContext>()) {}
 
 TextStyle::~TextStyle() {}
@@ -65,16 +65,16 @@ void TextStyle::onBeginFrame() {
     }
 }
 
-void TextStyle::onBeginDrawFrame(const View& _view, Scene& _scene) {
+void TextStyle::onBeginDrawFrame(const View& view, Scene& scene) {
 
-    Style::onBeginDrawFrame(_view, _scene);
+    Style::onBeginDrawFrame(view, scene);
 
     auto texUnit = RenderState::nextAvailableTextureUnit();
 
     m_shaderProgram->setUniformf(m_uMaxStrokeWidth, m_context->maxStrokeWidth());
     m_shaderProgram->setUniformf(m_uTexScaleFactor, glm::vec2(1.0f / GlyphTexture::size));
     m_shaderProgram->setUniformi(m_uTex, texUnit);
-    m_shaderProgram->setUniformMatrix4f(m_uOrtho, _view.getOrthoViewportMatrix());
+    m_shaderProgram->setUniformMatrix4f(m_uOrtho, view.getOrthoViewportMatrix());
 
     if (m_sdf) {
         m_shaderProgram->setUniformi(m_uPass, 1);

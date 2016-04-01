@@ -10,8 +10,8 @@ namespace Tangram {
 std::string SpotLight::s_classBlock;
 std::string SpotLight::s_typeName = "SpotLight";
 
-SpotLight::SpotLight(const std::string& _name, bool _dynamic) :
-    PointLight(_name, _dynamic),
+SpotLight::SpotLight(const std::string& name, bool dynamic) :
+    PointLight(name, dynamic),
     m_direction(1.0,0.0,0.0),
     m_spotExponent(0.0),
     m_spotCutoff(0.0),
@@ -22,36 +22,36 @@ SpotLight::SpotLight(const std::string& _name, bool _dynamic) :
 
 SpotLight::~SpotLight() {}
 
-void SpotLight::setDirection(const glm::vec3 &_dir) {
-    m_direction = _dir;
+void SpotLight::setDirection(const glm::vec3 &dir) {
+    m_direction = dir;
 }
 
-void SpotLight::setCutoffAngle(float _cutoffAngle) {
-    m_spotCutoff = _cutoffAngle;
-    m_spotCosCutoff = cos(_cutoffAngle * 3.14159 / 180.0);
+void SpotLight::setCutoffAngle(float cutoffAngle) {
+    m_spotCutoff = cutoffAngle;
+    m_spotCosCutoff = cos(cutoffAngle * 3.14159 / 180.0);
 }
 
-void SpotLight::setCutoffExponent(float _exponent) {
-    m_spotExponent = _exponent;
+void SpotLight::setCutoffExponent(float exponent) {
+    m_spotExponent = exponent;
 }
 
-std::unique_ptr<LightUniforms> SpotLight::injectOnProgram(ShaderProgram& _shader) {
-    injectSourceBlocks(_shader);
+std::unique_ptr<LightUniforms> SpotLight::injectOnProgram(ShaderProgram& shader) {
+    injectSourceBlocks(shader);
 
     if (!m_dynamic) { return nullptr; }
 
-    return std::make_unique<Uniforms>(_shader, getUniformName());
+    return std::make_unique<Uniforms>(shader, getUniformName());
 }
 
-void SpotLight::setupProgram(const View& _view, LightUniforms& _uniforms ) {
-    PointLight::setupProgram(_view, _uniforms);
+void SpotLight::setupProgram(const View& view, LightUniforms& uniforms ) {
+    PointLight::setupProgram(view, uniforms);
 
     glm::vec3 direction = m_direction;
     if (m_origin == LightOrigin::world) {
-        direction = glm::normalize(_view.getNormalMatrix() * direction);
+        direction = glm::normalize(view.getNormalMatrix() * direction);
     }
 
-    auto& u = static_cast<Uniforms&>(_uniforms);
+    auto& u = static_cast<Uniforms&>(uniforms);
     u.shader.setUniformf(u.direction, direction);
     u.shader.setUniformf(u.spotCosCutoff, m_spotCosCutoff);
     u.shader.setUniformf(u.spotExponent, m_spotExponent);

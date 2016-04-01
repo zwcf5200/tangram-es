@@ -16,12 +16,12 @@ public:
 
     FadeEffect() {}
 
-    FadeEffect(bool _in, Interpolation _interpolation, float _duration)
-        : m_interpolation(_interpolation), m_duration(_duration), m_in(_in)
+    FadeEffect(bool in, Interpolation interpolation, float duration)
+        : m_interpolation(interpolation), m_duration(duration), m_in(in)
     {}
 
-    float update(float _dt) {
-        m_step += _dt;
+    float update(float dt) {
+        m_step += dt;
         float st = m_step / m_duration;
 
         switch (m_interpolation) {

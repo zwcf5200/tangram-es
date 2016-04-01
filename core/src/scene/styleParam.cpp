@@ -67,84 +67,84 @@ const std::map<StyleParamKey, std::vector<Unit>> s_StyleParamUnits = {
     {StyleParamKey::outline_width, {Unit::meter, Unit::pixel}}
 };
 
-static int parseInt(const std::string& _str, int& _value) {
+static int parseInt(const std::string& str, int& value) {
     try {
         size_t index;
-        _value = std::stoi(_str, &index);
+        value = std::stoi(str, &index);
         return index;
     } catch (std::invalid_argument) {
     } catch (std::out_of_range) {}
-    LOGW("Not an Integer '%s'", _str.c_str());
+    LOGW("Not an Integer '%s'", str.c_str());
 
     return -1;
 }
 
-static int parseFloat(const std::string& _str, double& _value) {
+static int parseFloat(const std::string& str, double& value) {
     try {
         size_t index;
-        _value = std::stof(_str, &index);
+        value = std::stof(str, &index);
         return index;
     } catch (std::invalid_argument) {
     } catch (std::out_of_range) {}
-    LOGW("Not a Float '%s'", _str.c_str());
+    LOGW("Not a Float '%s'", str.c_str());
 
     return -1;
 }
 
-const std::string& StyleParam::keyName(StyleParamKey _key) {
+const std::string& StyleParam::keyName(StyleParamKey key) {
     static std::string fallback = "bug";
     for (const auto& entry : s_StyleParamMap) {
-        if (entry.second == _key) { return entry.first; }
+        if (entry.second == key) { return entry.first; }
     }
     return fallback;
 }
 
-StyleParamKey StyleParam::getKey(const std::string& _key) {
-    auto it = s_StyleParamMap.find(_key);
+StyleParamKey StyleParam::getKey(const std::string& key) {
+    auto it = s_StyleParamMap.find(key);
     if (it == s_StyleParamMap.end()) {
         return StyleParamKey::none;
     }
     return it->second;
 }
 
-StyleParam::StyleParam(const std::string& _key, const std::string& _value) {
-    key = getKey(_key);
+StyleParam::StyleParam(const std::string& keyStr, const std::string& valueStr) {
+    key = getKey(keyStr);
     value = none_type{};
 
     if (key == StyleParamKey::none) {
-        LOGW("Unknown StyleParam %s:%s", _key.c_str(), _value.c_str());
+        LOGW("Unknown StyleParam %s:%s", keyStr.c_str(), valueStr.c_str());
         return;
     }
-    if (!_value.empty()) {
-        value = parseString(key, _value);
+    if (!valueStr.empty()) {
+        value = parseString(key, valueStr);
     }
 }
 
-StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& _value) {
+StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& valueStr) {
 
     switch (key) {
     case StyleParamKey::extrude: {
-        return parseExtrudeString(_value);
+        return parseExtrudeString(valueStr);
     }
     case StyleParamKey::text_wrap: {
         int textWrap;
-        if (_value == "true") return textWrap;
-        if (_value == "false") return std::numeric_limits<uint32_t>::max();
-        if (parseInt(_value, textWrap) > 0) {
+        if (valueStr == "true") return textWrap;
+        if (valueStr == "false") return std::numeric_limits<uint32_t>::max();
+        if (parseInt(valueStr, textWrap) > 0) {
              return static_cast<uint32_t>(textWrap);
         }
     }
     case StyleParamKey::offset: {
         auto vec2 = glm::vec2(0.f, 0.f);
-        if (!parseVec2(_value, { Unit::pixel }, vec2) || std::isnan(vec2.y)) {
-            LOGW("Invalid offset parameter '%s'.", _value.c_str());
+        if (!parseVec2(valueStr, { Unit::pixel }, vec2) || std::isnan(vec2.y)) {
+            LOGW("Invalid offset parameter '%s'.", valueStr.c_str());
         }
         return vec2;
     }
     case StyleParamKey::size: {
         auto vec2 = glm::vec2(0.f, 0.f);
-        if (!parseVec2(_value, { Unit::pixel }, vec2)) {
-            LOGW("Invalid size parameter '%s'.", _value.c_str());
+        if (!parseVec2(valueStr, { Unit::pixel }, vec2)) {
+            LOGW("Invalid size parameter '%s'.", valueStr.c_str());
         }
         return vec2;
     }
@@ -152,15 +152,15 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::transition_show_time:
     case StyleParamKey::transition_selected_time: {
         float time = 0.0f;
-        if (!parseTime(_value, time)) {
-            LOGW("Invalid time param '%s'", _value.c_str());
+        if (!parseTime(valueStr, time)) {
+            LOGW("Invalid time param '%s'", valueStr.c_str());
         }
         return time;
     }
     case StyleParamKey::font_family:
     case StyleParamKey::font_weight:
     case StyleParamKey::font_style: {
-        std::string normalized = _value;
+        std::string normalized = valueStr;
         std::transform(normalized.begin(), normalized.end(), normalized.begin(), ::tolower);
         return normalized;
     }
@@ -173,11 +173,11 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::style:
     case StyleParamKey::outline_style:
     case StyleParamKey::repeat_group:
-        return _value;
+        return valueStr;
     case StyleParamKey::font_size: {
         float fontSize = 0.f;
-        if (!parseFontSize(_value, fontSize)) {
-            LOGW("Invalid font-size '%s'.", _value.c_str());
+        if (!parseFontSize(valueStr, fontSize)) {
+            LOGW("Invalid font-size '%s'.", valueStr.c_str());
         }
         return fontSize;
     }
@@ -186,15 +186,15 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::tile_edges:
     case StyleParamKey::visible:
     case StyleParamKey::collide:
-        if (_value == "true") { return true; }
-        if (_value == "false") { return false; }
+        if (valueStr == "true") { return true; }
+        if (valueStr == "false") { return false; }
         LOGW("Bool value required for capitalized/visible. Using Default.");
         break;
     case StyleParamKey::order:
     case StyleParamKey::outline_order:
     case StyleParamKey::priority: {
         int num;
-        if (parseInt(_value, num) > 0) {
+        if (parseInt(valueStr, num) > 0) {
              return static_cast<uint32_t>(num);
         }
         break;
@@ -203,10 +203,10 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
         ValueUnitPair repeatDistance;
         repeatDistance.unit = Unit::pixel;
 
-        int pos = parseValueUnitPair(_value, 0, repeatDistance);
+        int pos = parseValueUnitPair(valueStr, 0, repeatDistance);
         if (pos < 0) {
-            LOGW("Invalid repeat distance value '%s'", _value.c_str());
-            repeatDistance.value =  256.0f;
+            LOGW("Invalid repeat distance value '%s'", valueStr.c_str());
+            repeatDistance.value = 256.0f;
             repeatDistance.unit = Unit::pixel;
         } else {
             if (repeatDistance.unit != Unit::pixel) {
@@ -221,9 +221,9 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
         ValueUnitPair width;
         width.unit = Unit::meter;
 
-        int pos = parseValueUnitPair(_value, 0, width);
+        int pos = parseValueUnitPair(valueStr, 0, width);
         if (pos < 0) {
-            LOGW("Invalid width value '%s'", _value.c_str());
+            LOGW("Invalid width value '%s'", valueStr.c_str());
             width.value =  2.0f;
             width.unit = Unit::pixel;
         }
@@ -234,7 +234,7 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::outline_miter_limit:
     case StyleParamKey::font_stroke_width: {
         double num;
-        if (parseFloat(_value, num) > 0) {
+        if (parseFloat(valueStr, num) > 0) {
              return static_cast<float>(num);
         }
         break;
@@ -244,15 +244,15 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::outline_color:
     case StyleParamKey::font_fill:
     case StyleParamKey::font_stroke_color:
-        return parseColor(_value);
+        return parseColor(valueStr);
 
     case StyleParamKey::cap:
     case StyleParamKey::outline_cap:
-        return static_cast<uint32_t>(CapTypeFromString(_value));
+        return static_cast<uint32_t>(CapTypeFromString(valueStr));
 
     case StyleParamKey::join:
     case StyleParamKey::outline_join:
-        return static_cast<uint32_t>(JoinTypeFromString(_value));
+        return static_cast<uint32_t>(JoinTypeFromString(valueStr));
 
     default:
         break;
@@ -343,56 +343,56 @@ std::string StyleParam::toString() const {
     return k + "undefined " + std::to_string(static_cast<uint8_t>(key));
 }
 
-int StyleParam::parseValueUnitPair(const std::string& _value, size_t start,
-                                   StyleParam::ValueUnitPair& _result) {
+int StyleParam::parseValueUnitPair(const std::string& value, size_t start,
+                                   StyleParam::ValueUnitPair& result) {
 
     static const std::vector<std::string> units = { "px", "ms", "m", "s" };
 
-    if (start >= _value.length()) { return -1; }
+    if (start >= value.length()) { return -1; }
 
     float num;
     int end;
 
-    int ok = std::sscanf(_value.c_str() + start, "%f%n", &num, &end);
+    int ok = std::sscanf(value.c_str() + start, "%f%n", &num, &end);
 
     if (!ok) { return -1; }
 
-    _result.value = static_cast<float>(num);
+    result.value = static_cast<float>(num);
 
     start += end;
 
-    if (start >= _value.length()) { return start; }
+    if (start >= value.length()) { return start; }
 
     for (size_t i = 0; i < units.size(); ++i) {
         const auto& unit = units[i];
         std::string valueUnit;
-        if (unit == _value.substr(start, std::min<int>(_value.length(), unit.length()))) {
-            _result.unit = static_cast<Unit>(i);
+        if (unit == value.substr(start, std::min<int>(value.length(), unit.length()))) {
+            result.unit = static_cast<Unit>(i);
             start += unit.length();
             break;
         }
     }
 
     // TODO skip whitespace , whitespace
-    return std::min(_value.length(), start + 1);
+    return std::min(value.length(), start + 1);
 }
 
-bool StyleParam::parseTime(const std::string &_value, float &_time) {
+bool StyleParam::parseTime(const std::string &value, float &time) {
     ValueUnitPair p;
 
-    if (!parseValueUnitPair(_value, 0, p)) {
+    if (!parseValueUnitPair(value, 0, p)) {
         return false;
     }
 
     switch (p.unit) {
         case Unit::milliseconds:
-            _time = p.value / 1000.f;
+            time = p.value / 1000.f;
             break;
         case Unit::seconds:
-            _time = p.value;
+            time = p.value;
             break;
         default:
-            LOGW("Invalid unit provided for time %s", _value.c_str());
+            LOGW("Invalid unit provided for time %s", value.c_str());
             return false;
             break;
     }
@@ -400,13 +400,13 @@ bool StyleParam::parseTime(const std::string &_value, float &_time) {
     return true;
 }
 
-bool StyleParam::parseVec2(const std::string& _value, const std::vector<Unit> units, glm::vec2& _vec) {
+bool StyleParam::parseVec2(const std::string& value, const std::vector<Unit> units, glm::vec2& vec) {
     ValueUnitPair v1, v2;
 
     // initialize with defaults
     v1.unit = v2.unit = units[0];
 
-    int pos = parseValueUnitPair(_value, 0, v1);
+    int pos = parseValueUnitPair(value, 0, v1);
     if (pos < 0) {
         return false;
     }
@@ -415,9 +415,9 @@ bool StyleParam::parseVec2(const std::string& _value, const std::vector<Unit> un
         return false;
     }
 
-    pos = parseValueUnitPair(_value, pos, v2);
+    pos = parseValueUnitPair(value, pos, v2);
     if (pos < 0) {
-        _vec = { v1.value, NAN };
+        vec = { v1.value, NAN };
         return true;
     }
 
@@ -425,17 +425,17 @@ bool StyleParam::parseVec2(const std::string& _value, const std::vector<Unit> un
         return false;
     }
 
-    _vec = { v1.value, v2.value };
+    vec = { v1.value, v2.value };
     return true;
 }
 
-uint32_t StyleParam::parseColor(const std::string& _color) {
+uint32_t StyleParam::parseColor(const std::string& colorStr) {
     Color color;
 
-    if (isdigit(_color.front())) {
+    if (isdigit(colorStr.front())) {
         // try to parse as comma-separated rgba components
         float r, g, b, a = 1.;
-        if (sscanf(_color.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a) >= 3) {
+        if (sscanf(colorStr.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a) >= 3) {
             color = Color {
                 static_cast<uint8_t>(CLAMP((r * 255.), 0, 255)),
                 static_cast<uint8_t>(CLAMP((g * 255.), 0, 255)),
@@ -445,36 +445,36 @@ uint32_t StyleParam::parseColor(const std::string& _color) {
         }
     } else {
         // parse as css color or #hex-num
-        color = CSSColorParser::parse(_color);
+        color = CSSColorParser::parse(colorStr);
     }
     return color.getInt();
 }
 
-bool StyleParam::parseFontSize(const std::string& _str, float& _pxSize) {
-    if (_str.empty()) {
+bool StyleParam::parseFontSize(const std::string& str, float& pxSize) {
+    if (str.empty()) {
         return false;
     }
 
     double num;
-    int index = parseFloat(_str, num);
+    int index = parseFloat(str, num);
     if (index < 0) { return false; }
 
-    _pxSize = static_cast<float>(num);
+    pxSize = static_cast<float>(num);
 
-    if (size_t(index) == _str.length() && (_str.find('.') == std::string::npos)) {
+    if (size_t(index) == str.length() && (str.find('.') == std::string::npos)) {
         return true;
     }
 
-    size_t end = _str.length() - 1;
+    size_t end = str.length() - 1;
 
-    if (_str.compare(index, end, "px") == 0) {
+    if (str.compare(index, end, "px") == 0) {
         return true;
-    } else if (_str.compare(index, end, "em") == 0) {
-        _pxSize *= 16.f;
-    } else if (_str.compare(index, end, "pt") == 0) {
-        _pxSize /= 0.75f;
-    } else if (_str.compare(index, end, "%") == 0) {
-        _pxSize /= 6.25f;
+    } else if (str.compare(index, end, "em") == 0) {
+        pxSize *= 16.f;
+    } else if (str.compare(index, end, "pt") == 0) {
+        pxSize /= 0.75f;
+    } else if (str.compare(index, end, "%") == 0) {
+        pxSize /= 6.25f;
     } else {
         return false;
     }
@@ -482,8 +482,8 @@ bool StyleParam::parseFontSize(const std::string& _str, float& _pxSize) {
     return true;
 }
 
-bool StyleParam::isColor(StyleParamKey _key) {
-    switch (_key) {
+bool StyleParam::isColor(StyleParamKey key) {
+    switch (key) {
         case StyleParamKey::color:
         case StyleParamKey::outline_color:
         case StyleParamKey::font_fill:
@@ -494,8 +494,8 @@ bool StyleParam::isColor(StyleParamKey _key) {
     }
 }
 
-bool StyleParam::isWidth(StyleParamKey _key) {
-    switch (_key) {
+bool StyleParam::isWidth(StyleParamKey key) {
+    switch (key) {
         case StyleParamKey::width:
         case StyleParamKey::outline_width:
         case StyleParamKey::size:
@@ -506,8 +506,8 @@ bool StyleParam::isWidth(StyleParamKey _key) {
     }
 }
 
-bool StyleParam::isOffsets(StyleParamKey _key) {
-    switch (_key) {
+bool StyleParam::isOffsets(StyleParamKey key) {
+    switch (key) {
         case StyleParamKey::offset:
             return true;
         default:
@@ -515,8 +515,8 @@ bool StyleParam::isOffsets(StyleParamKey _key) {
     }
 }
 
-bool StyleParam::isFontSize(StyleParamKey _key) {
-    switch (_key) {
+bool StyleParam::isFontSize(StyleParamKey key) {
+    switch (key) {
         case StyleParamKey::font_size:
             return true;
         default:
@@ -524,17 +524,17 @@ bool StyleParam::isFontSize(StyleParamKey _key) {
     }
 }
 
-bool StyleParam::isRequired(StyleParamKey _key) {
+bool StyleParam::isRequired(StyleParamKey key) {
     static const std::vector<StyleParamKey> requiredKeys =
         { StyleParamKey::color, StyleParamKey::order, StyleParamKey::width };
 
-    return std::find(requiredKeys.begin(), requiredKeys.end(), _key) != requiredKeys.end();
+    return std::find(requiredKeys.begin(), requiredKeys.end(), key) != requiredKeys.end();
 }
 
-bool StyleParam::unitsForStyleParam(StyleParamKey _key, std::vector<Unit>& _unit) {
-    auto it = s_StyleParamUnits.find(_key);
+bool StyleParam::unitsForStyleParam(StyleParamKey key, std::vector<Unit>& unit) {
+    auto it = s_StyleParamUnits.find(key);
     if (it != s_StyleParamUnits.end()) {
-        _unit = it->second;
+        unit = it->second;
         return true;
     }
     return false;

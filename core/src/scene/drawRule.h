@@ -45,7 +45,7 @@ struct DrawRuleData {
     std::string name;
     int id;
 
-    DrawRuleData(std::string _name, int _id, std::vector<StyleParam> _parameters);
+    DrawRuleData(std::string name, int id, std::vector<StyleParam> parameters);
 
     std::string toString() const;
 
@@ -75,57 +75,57 @@ struct DrawRule {
     int id;
     bool isOutlineOnly = false;
 
-    DrawRule(const DrawRuleData& _ruleData, const SceneLayer& _layer);
+    DrawRule(const DrawRuleData& ruleData, const SceneLayer& layer);
 
-    void merge(const DrawRuleData& _ruleData, const SceneLayer& _layer);
+    void merge(const DrawRuleData& ruleData, const SceneLayer& layer);
 
-    bool isJSFunction(StyleParamKey _key) const;
+    bool isJSFunction(StyleParamKey key) const;
 
-    bool contains(StyleParamKey _key) const;
+    bool contains(StyleParamKey key) const;
 
     const std::string& getStyleName() const;
 
-    const char* getLayerName(StyleParamKey _key) const;
+    const char* getLayerName(StyleParamKey key) const;
 
     size_t getParamSetHash() const;
 
-    const StyleParam& findParameter(StyleParamKey _key) const;
+    const StyleParam& findParameter(StyleParamKey key) const;
 
     template<typename T>
-    bool get(StyleParamKey _key, T& _value) const {
-        if (auto& param = findParameter(_key)) {
-            return StyleParam::Value::visit(param.value, StyleParam::visitor<T>{ _value });
+    bool get(StyleParamKey key, T& value) const {
+        if (auto& param = findParameter(key)) {
+            return StyleParam::Value::visit(param.value, StyleParam::visitor<T>{ value });
         }
         return false;
     }
 
     template<typename T>
-    const T* get(StyleParamKey _key) const {
-        if (auto& param = findParameter(_key)) {
+    const T* get(StyleParamKey key) const {
+        if (auto& param = findParameter(key)) {
             return StyleParam::Value::visit(param.value, StyleParam::visitor_ptr<T>{});
         }
         return nullptr;
     }
 
 private:
-    void logGetError(StyleParamKey _expectedKey, const StyleParam& _param) const;
+    void logGetError(StyleParamKey expectedKey, const StyleParam& param) const;
 
 };
 
 class DrawRuleMergeSet {
 
 public:
-    /* Determine and apply DrawRules for a @_feature and add
-     * the result to @_tile
+    /* Determine and apply DrawRules for a @feature and add
+     * the result to @tile
      */
-    void apply(const Feature& _feature, const SceneLayer& _sceneLayer,
-               StyleContext& _ctx, TileBuilder& _builder);
+    void apply(const Feature& feature, const SceneLayer& sceneLayer,
+               StyleContext& ctx, TileBuilder& builder);
 
     // internal
-    bool match(const Feature& _feature, const SceneLayer& _layer, StyleContext& _ctx);
+    bool match(const Feature& feature, const SceneLayer& layer, StyleContext& ctx);
 
     // internal
-    void mergeRules(const SceneLayer& _layer);
+    void mergeRules(const SceneLayer& layer);
 
     auto& matchedRules() { return m_matchedRules; }
 

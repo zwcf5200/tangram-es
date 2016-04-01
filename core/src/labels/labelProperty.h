@@ -5,10 +5,10 @@
 namespace Tangram {
 
 template <class M, class T>
-inline bool tryFind(M& _map, const std::string& _transform, T& _out) {
-    auto it = _map.find(_transform);
-    if (it != _map.end()) {
-        _out = it->second;
+inline bool tryFind(M& map, const std::string& transform, T& out) {
+    auto it = map.find(transform);
+    if (it != map.end()) {
+        out = it->second;
         return true;
     }
     return false;
@@ -28,7 +28,7 @@ enum Anchor {
     bottom_right,
 };
 
-bool anchor(const std::string& _transform, Anchor& _out);
+bool anchor(const std::string& transform, Anchor& out);
 
 } // LabelProperty
 
@@ -47,8 +47,8 @@ enum Align {
     center,
 };
 
-bool transform(const std::string& _transform, Transform& _out);
-bool align(const std::string& _transform, Align& _out);
+bool transform(const std::string& transform, Transform& out);
+bool align(const std::string& transform, Align& out);
 
 } // TextLabelProperty
 } // Tangram

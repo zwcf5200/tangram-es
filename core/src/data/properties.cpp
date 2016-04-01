@@ -8,25 +8,25 @@ Properties::Properties() {}
 
 Properties::~Properties() {}
 
-Properties::Properties(std::vector<Item>&& _items) {
+Properties::Properties(std::vector<Item>&& items) {
     typedef std::vector<Item>::iterator iter_t;
 
-    props.reserve(_items.size());
+    props.reserve(items.size());
     props.insert(props.begin(),
-                 std::move_iterator<iter_t>(_items.begin()),
-                 std::move_iterator<iter_t>(_items.end()));
-    _items.clear();
+                 std::move_iterator<iter_t>(items.begin()),
+                 std::move_iterator<iter_t>(items.end()));
+    items.clear();
     sort();
 }
 
-Properties& Properties::operator=(Properties&& _other) {
-    props = std::move(_other.props);
-    sourceId = _other.sourceId;
+Properties& Properties::operator=(Properties&& other) {
+    props = std::move(other.props);
+    sourceId = other.sourceId;
     return *this;
 }
 
-void Properties::setSorted(std::vector<Item>&& _items) {
-    props = std::move(_items);
+void Properties::setSorted(std::vector<Item>&& items) {
+    props = std::move(items);
 }
 
 const Value& Properties::get(const std::string& key) const {

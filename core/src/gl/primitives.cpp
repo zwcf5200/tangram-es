@@ -54,13 +54,13 @@ void popState() {
     RenderState::vertexBuffer(s_boundBuffer);
 }
 
-void drawLine(const glm::vec2& _origin, const glm::vec2& _destination) {
+void drawLine(const glm::vec2& origin, const glm::vec2& destination) {
 
     init();
 
     glm::vec2 verts[2] = {
-        glm::vec2(_origin.x, _origin.y),
-        glm::vec2(_destination.x, _destination.y)
+        glm::vec2(origin.x, origin.y),
+        glm::vec2(destination.x, destination.y)
     };
 
     saveState();
@@ -75,41 +75,41 @@ void drawLine(const glm::vec2& _origin, const glm::vec2& _destination) {
 
 }
 
-void drawRect(const glm::vec2& _origin, const glm::vec2& _destination) {
-    drawLine(_origin, {_destination.x, _origin.y});
-    drawLine({_destination.x, _origin.y}, _destination);
-    drawLine(_destination, {_origin.x, _destination.y});
-    drawLine({_origin.x,_destination.y}, _origin);
+void drawRect(const glm::vec2& origin, const glm::vec2& destination) {
+    drawLine(origin, {destination.x, origin.y});
+    drawLine({destination.x, origin.y}, destination);
+    drawLine(destination, {origin.x, destination.y});
+    drawLine({origin.x,destination.y}, origin);
 }
 
-void drawPoly(const glm::vec2* _polygon, size_t _n) {
+void drawPoly(const glm::vec2* polygon, size_t n) {
     init();
 
     saveState();
 
     s_shader->use();
 
-    // enable the layout for the _polygon vertices
-    s_layout->enable(*s_shader, 0, (void*)_polygon);
+    // enable the layout for the polygon vertices
+    s_layout->enable(*s_shader, 0, (void*)polygon);
 
-    glDrawArrays(GL_LINE_LOOP, 0, _n);
+    glDrawArrays(GL_LINE_LOOP, 0, n);
     popState();
 }
 
-void setColor(unsigned int _color) {
+void setColor(unsigned int color) {
     init();
 
-    float r = (_color >> 16 & 0xff) / 255.0;
-    float g = (_color >> 8  & 0xff) / 255.0;
-    float b = (_color       & 0xff) / 255.0;
+    float r = (color >> 16 & 0xff) / 255.0;
+    float g = (color >> 8  & 0xff) / 255.0;
+    float b = (color       & 0xff) / 255.0;
 
     s_shader->setUniformf(s_uColor, r, g, b);
 }
 
-void setResolution(float _width, float _height) {
+void setResolution(float width, float height) {
     init();
 
-    glm::mat4 proj = glm::ortho(0.f, _width, _height, 0.f, -1.f, 1.f);
+    glm::mat4 proj = glm::ortho(0.f, width, height, 0.f, -1.f, 1.f);
     s_shader->setUniformMatrix4f(s_uProj, proj);
 }
 

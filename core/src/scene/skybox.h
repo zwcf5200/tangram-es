@@ -15,12 +15,12 @@ class Skybox {
 
 public:
 
-    Skybox(std::string _file);
+    Skybox(std::string file);
 
     ~Skybox() {}
 
     void init();
-    void draw(const View& _view);
+    void draw(const View& view);
 
 private:
 

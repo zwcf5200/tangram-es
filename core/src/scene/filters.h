@@ -62,7 +62,7 @@ struct Filter {
     Data data;
 
     Filter() : data(none_type{}) {}
-    Filter(Data _data) : data(std::move(_data)) {}
+    Filter(Data data) : data(std::move(data)) {}
 
     bool eval(const Feature& feat, StyleContext& ctx) const;
 
@@ -100,10 +100,10 @@ struct Filter {
         return { Function{ id }};
     }
 
-    static FilterGlobal globalType(const std::string& _key) {
-        if (_key == "$geometry") {
+    static FilterGlobal globalType(const std::string& key) {
+        if (key == "$geometry") {
             return FilterGlobal::geometry;
-        } else if (_key == "$zoom") {
+        } else if (key == "$zoom") {
             return  FilterGlobal::zoom;
         }
         return  FilterGlobal::undefined;
@@ -111,7 +111,7 @@ struct Filter {
 
     /* Public for testing */
     static void sort(std::vector<Filter>& filters);
-    void print(int _indent = 0) const;
+    void print(int indent = 0) const;
     int filterCost() const;
     const bool isOperator() const;
     const std::string& key() const;

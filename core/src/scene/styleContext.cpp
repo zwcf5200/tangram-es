@@ -82,24 +82,24 @@ StyleContext::~StyleContext() {
     duk_destroy_heap(m_ctx);
 }
 
-void StyleContext::initFunctions(const Scene& _scene) {
+void StyleContext::initFunctions(const Scene& scene) {
 
-    if (_scene.id == m_sceneId) {
+    if (scene.id == m_sceneId) {
         return;
     }
-    m_sceneId = _scene.id;
+    m_sceneId = scene.id;
 
-    setFunctions(_scene.functions());
+    setFunctions(scene.functions());
 }
 
-bool StyleContext::setFunctions(const std::vector<std::string>& _functions) {
+bool StyleContext::setFunctions(const std::vector<std::string>& functions) {
 
     auto arr_idx = duk_push_array(m_ctx);
     int id = 0;
 
     bool ok = true;
 
-    for (auto& function : _functions) {
+    for (auto& function : functions) {
         duk_push_string(m_ctx, function.c_str());
         duk_push_string(m_ctx, "");
 
@@ -123,9 +123,9 @@ bool StyleContext::setFunctions(const std::vector<std::string>& _functions) {
     return ok;
 }
 
-void StyleContext::setFeature(const Feature& _feature) {
+void StyleContext::setFeature(const Feature& feature) {
 
-    m_feature = &_feature;
+    m_feature = &feature;
 
     if (m_globalGeom != m_feature->geometryType) {
         setGlobal(key_geom, s_geometryStrings[m_feature->geometryType]);
@@ -133,56 +133,56 @@ void StyleContext::setFeature(const Feature& _feature) {
     }
 }
 
-void StyleContext::setGlobalZoom(int _zoom) {
-    if (m_globalZoom != _zoom) {
-        setGlobal(key_zoom, _zoom);
-        m_globalZoom = _zoom;
+void StyleContext::setGlobalZoom(int zoom) {
+    if (m_globalZoom != zoom) {
+        setGlobal(key_zoom, zoom);
+        m_globalZoom = zoom;
     }
 }
 
-void StyleContext::setGlobal(const std::string& _key, Value _val) {
-    auto globalKey = Filter::globalType(_key);
+void StyleContext::setGlobal(const std::string& key, Value val) {
+    auto globalKey = Filter::globalType(key);
     if (globalKey == FilterGlobal::undefined) {
-        LOG("Undefined Global: %s", _key.c_str());
+        LOG("Undefined Global: %s", key.c_str());
         return;
     }
 
     // Unset shortcuts in case setGlobal was not called by
     // the helper functions above.
-    if (_key == key_zoom) { m_globalZoom = -1; }
-    if (_key == key_geom) { m_globalGeom = -1; }
+    if (key == key_zoom) { m_globalZoom = -1; }
+    if (key == key_geom) { m_globalGeom = -1; }
 
     Value& entry = m_globals[static_cast<uint8_t>(globalKey)];
-    if (entry == _val) { return; }
+    if (entry == val) { return; }
 
-    if (_val.is<std::string>()) {
-        duk_push_string(m_ctx, _val.get<std::string>().c_str());
-        duk_put_global_string(m_ctx, _key.c_str());
-    } else if (_val.is<double>()) {
-        duk_push_number(m_ctx, _val.get<double>());
-        duk_put_global_string(m_ctx, _key.c_str());
+    if (val.is<std::string>()) {
+        duk_push_string(m_ctx, val.get<std::string>().c_str());
+        duk_put_global_string(m_ctx, key.c_str());
+    } else if (val.is<double>()) {
+        duk_push_number(m_ctx, val.get<double>());
+        duk_put_global_string(m_ctx, key.c_str());
     }
 
-    entry = std::move(_val);
+    entry = std::move(val);
 }
 
-const Value& StyleContext::getGlobal(const std::string& _key) const {
-    return getGlobal(Filter::globalType(_key));
+const Value& StyleContext::getGlobal(const std::string& key) const {
+    return getGlobal(Filter::globalType(key));
 }
 
 void StyleContext::clear() {
     m_feature = nullptr;
 }
 
-bool StyleContext::evalFilter(FunctionID _id) {
+bool StyleContext::evalFilter(FunctionID id) {
 
     if (!duk_get_global_string(m_ctx, FUNC_ID)) {
         LOGE("EvalFilterFn - functions not initialized");
         return false;
     }
 
-    if (!duk_get_prop_index(m_ctx, -1, _id)) {
-        LOGE("EvalFilterFn - function %d not set", _id);
+    if (!duk_get_prop_index(m_ctx, -1, id)) {
+        LOGE("EvalFilterFn - function %d not set", id);
         duk_pop(m_ctx);
         DBG("evalFilterFn\n");
         return false;
@@ -211,23 +211,23 @@ bool StyleContext::evalFilter(FunctionID _id) {
     return result;
 }
 
-bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val) const {
-    _val = none_type{};
+bool StyleContext::parseStyleResult(StyleParamKey key, StyleParam::Value& val) const {
+    val = none_type{};
 
     if (duk_is_string(m_ctx, -1)) {
         std::string value(duk_get_string(m_ctx, -1));
-        _val = StyleParam::parseString(_key, value);
+        val = StyleParam::parseString(key, value);
 
     } else if (duk_is_boolean(m_ctx, -1)) {
         bool value = duk_get_boolean(m_ctx, -1);
 
-        switch (_key) {
+        switch (key) {
             case StyleParamKey::interactive:
             case StyleParamKey::visible:
-                _val = value;
+                val = value;
                 break;
             case StyleParamKey::extrude:
-                _val = value ? glm::vec2(NAN, NAN) : glm::vec2(0.0f, 0.0f);
+                val = value ? glm::vec2(NAN, NAN) : glm::vec2(0.0f, 0.0f);
                 break;
             default:
                 break;
@@ -238,7 +238,7 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
         int len = duk_get_int(m_ctx, -1);
         duk_pop(m_ctx);
 
-        switch (_key) {
+        switch (key) {
             case StyleParamKey::extrude: {
                 if (len != 2) {
                     LOGW("Wrong array size for extrusion: '%d'.", len);
@@ -253,7 +253,7 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
                 double v2 = duk_get_number(m_ctx, -1);
                 duk_pop(m_ctx);
 
-                _val = glm::vec2(v1, v2);
+                val = glm::vec2(v1, v2);
                 break;
             }
             case StyleParamKey::color:
@@ -283,7 +283,7 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
                     duk_pop(m_ctx);
                 }
 
-                _val = (((uint32_t)(255.0 * a) & 0xff) << 24) |
+                val = (((uint32_t)(255.0 * a) & 0xff) << 24) |
                        (((uint32_t)(255.0 * r) & 0xff)<< 16) |
                        (((uint32_t)(255.0 * g) & 0xff)<< 8) |
                        (((uint32_t)(255.0 * b) & 0xff));
@@ -298,20 +298,20 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
         LOGD("duk evaluates JS method to NAN.\n");
     } else if (duk_is_number(m_ctx, -1)) {
 
-        switch (_key) {
+        switch (key) {
             case StyleParamKey::extrude:
-                _val = glm::vec2(0.f, static_cast<float>(duk_get_number(m_ctx, -1)));
+                val = glm::vec2(0.f, static_cast<float>(duk_get_number(m_ctx, -1)));
                 break;
             case StyleParamKey::width:
             case StyleParamKey::outline_width: {
                 // TODO more efficient way to return pixels.
                 // atm this only works by return value as string
                 double v = duk_get_number(m_ctx, -1);
-                _val = StyleParam::Width{static_cast<float>(v)};
+                val = StyleParam::Width{static_cast<float>(v)};
                 break;
             }
             case StyleParamKey::font_stroke_width: {
-                _val = static_cast<float>(duk_get_number(m_ctx, -1));
+                val = static_cast<float>(duk_get_number(m_ctx, -1));
                 break;
             }
             case StyleParamKey::order:
@@ -321,7 +321,7 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
             case StyleParamKey::outline_color:
             case StyleParamKey::font_fill:
             case StyleParamKey::font_stroke_color: {
-                _val = static_cast<uint32_t>(duk_get_uint(m_ctx, -1));
+                val = static_cast<uint32_t>(duk_get_uint(m_ctx, -1));
                 break;
             }
             default:
@@ -331,24 +331,24 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
         // Ignore setting value
         LOGD("duk evaluates JS method to null or undefined.\n");
     } else {
-        LOGW("Unhandled return type from Javascript style function for %d.", _key);
+        LOGW("Unhandled return type from Javascript style function for %d.", key);
     }
 
     duk_pop(m_ctx);
 
     DUMP("parseStyleResult\n");
-    return !_val.is<none_type>();
+    return !val.is<none_type>();
 }
 
-bool StyleContext::evalStyle(FunctionID _id, StyleParamKey _key, StyleParam::Value& _val) {
+bool StyleContext::evalStyle(FunctionID id, StyleParamKey key, StyleParam::Value& val) {
 
     if (!duk_get_global_string(m_ctx, FUNC_ID)) {
         LOGE("EvalFilterFn - functions array not initialized");
         return false;
     }
 
-    if (!duk_get_prop_index(m_ctx, -1, _id)) {
-        LOGE("EvalFilterFn - function %d not set", _id);
+    if (!duk_get_prop_index(m_ctx, -1, id)) {
+        LOGE("EvalFilterFn - function %d not set", id);
     }
 
     // pop fns array
@@ -360,48 +360,48 @@ bool StyleContext::evalStyle(FunctionID _id, StyleParamKey _key, StyleParam::Val
         return false;
     }
 
-    return parseStyleResult(_key, _val);
+    return parseStyleResult(key, val);
 }
 
 // Implements Proxy handler.has(target_object, key)
-duk_ret_t StyleContext::jsHasProperty(duk_context *_ctx) {
+duk_ret_t StyleContext::jsHasProperty(duk_context *ctx) {
 
-    duk_get_prop_string(_ctx, 0, INSTANCE_ID);
-    auto* attr = static_cast<const StyleContext*> (duk_to_pointer(_ctx, -1));
+    duk_get_prop_string(ctx, 0, INSTANCE_ID);
+    auto* attr = static_cast<const StyleContext*> (duk_to_pointer(ctx, -1));
     if (!attr || !attr->m_feature) {
         LOGE("Error: no context set %p %p", attr, attr ? attr->m_feature : nullptr);
-        duk_pop(_ctx);
+        duk_pop(ctx);
         return 0;
     }
 
-    const char* key = duk_require_string(_ctx, 1);
-    duk_push_boolean(_ctx, attr->m_feature->props.contains(key));
+    const char* key = duk_require_string(ctx, 1);
+    duk_push_boolean(ctx, attr->m_feature->props.contains(key));
 
     return 1;
 }
 
 // Implements Proxy handler.get(target_object, key)
-duk_ret_t StyleContext::jsGetProperty(duk_context *_ctx) {
+duk_ret_t StyleContext::jsGetProperty(duk_context *ctx) {
 
     // Get the StyleContext instance from JS Feature object (first parameter).
-    duk_get_prop_string(_ctx, 0, INSTANCE_ID);
-    auto* attr = static_cast<const StyleContext*> (duk_to_pointer(_ctx, -1));
+    duk_get_prop_string(ctx, 0, INSTANCE_ID);
+    auto* attr = static_cast<const StyleContext*> (duk_to_pointer(ctx, -1));
     if (!attr || !attr->m_feature) {
         LOGE("Error: no context set %p %p",  attr, attr ? attr->m_feature : nullptr);
-        duk_pop(_ctx);
+        duk_pop(ctx);
         return 0;
     }
 
     // Get the property name (second parameter)
-    const char* key = duk_require_string(_ctx, 1);
+    const char* key = duk_require_string(ctx, 1);
 
     auto it = attr->m_feature->props.get(key);
     if (it.is<std::string>()) {
-        duk_push_string(_ctx, it.get<std::string>().c_str());
+        duk_push_string(ctx, it.get<std::string>().c_str());
     } else if (it.is<double>()) {
-        duk_push_number(_ctx, it.get<double>());
+        duk_push_number(ctx, it.get<double>());
     } else {
-        duk_push_undefined(_ctx);
+        duk_push_undefined(ctx);
     }
 
     return 1;

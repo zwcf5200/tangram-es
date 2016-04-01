@@ -52,11 +52,11 @@ public:
     const auto& mapProjection() const { return m_mapProjection; };
     const auto& fontContext() const { return m_fontContext; }
 
-    const Style* findStyle(const std::string& _name) const;
-    const Light* findLight(const std::string& _name) const;
+    const Style* findStyle(const std::string& name) const;
+    const Light* findLight(const std::string& name) const;
 
-    int addIdForName(const std::string& _name);
-    int getIdForName(const std::string& _name) const;
+    int addIdForName(const std::string& name);
+    int getIdForName(const std::string& name) const;
 
     bool texture(const std::string& textureName, std::shared_ptr<Texture>& texture) const;
 

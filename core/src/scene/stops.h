@@ -21,29 +21,29 @@ struct Stops {
     struct Frame {
         float key = 0;
         StopValue value;
-        Frame(float _k, float _v) : key(_k), value(_v) {}
-        Frame(float _k, Color _c) : key(_k), value(_c) {}
-        Frame(float _k, glm::vec2 _v) : key(_k), value(_v) {}
+        Frame(float k, float v) : key(k), value(v) {}
+        Frame(float k, Color c) : key(k), value(c) {}
+        Frame(float k, glm::vec2 v) : key(k), value(v) {}
     };
 
     std::vector<Frame> frames;
-    static Stops Colors(const YAML::Node& _node);
-    static Stops Widths(const YAML::Node& _node, const MapProjection& _projection, const std::vector<Unit>& _units);
-    static Stops FontSize(const YAML::Node& _node);
-    static Stops Offsets(const YAML::Node& _node, const std::vector<Unit>& _units);
+    static Stops Colors(const YAML::Node& node);
+    static Stops Widths(const YAML::Node& node, const MapProjection& projection, const std::vector<Unit>& units);
+    static Stops FontSize(const YAML::Node& node);
+    static Stops Offsets(const YAML::Node& node, const std::vector<Unit>& units);
     static Stops Numbers(const YAML::Node& node);
 
-    Stops(const std::vector<Frame>& _frames) : frames(_frames) {}
+    Stops(const std::vector<Frame>& frames) : frames(frames) {}
     Stops(const Stops& rhs) = default;
     Stops() {}
 
-    auto evalFloat(float _key) const -> float;
-    auto evalWidth(float _key) const -> float;
-    auto evalColor(float _key) const -> uint32_t;
-    auto evalVec2(float _key) const -> glm::vec2;
-    auto nearestHigherFrame(float _key) const -> std::vector<Frame>::const_iterator;
+    auto evalFloat(float key) const -> float;
+    auto evalWidth(float key) const -> float;
+    auto evalColor(float key) const -> uint32_t;
+    auto evalVec2(float key) const -> glm::vec2;
+    auto nearestHigherFrame(float key) const -> std::vector<Frame>::const_iterator;
 
-    static void eval(const Stops& _stops, StyleParamKey _key, float _zoom, StyleParam::Value& _result);
+    static void eval(const Stops& stops, StyleParamKey key, float zoom, StyleParam::Value& result);
 };
 
 }

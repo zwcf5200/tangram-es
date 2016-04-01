@@ -43,16 +43,16 @@ namespace Tangram {
 constexpr size_t CACHE_SIZE = 16 * (1024 * 1024);
 
 
-bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
+bool SceneLoader::loadScene(const std::string& sceneString, Scene& scene) {
 
     Node config;
 
-    try { config = YAML::Load(_sceneString); }
+    try { config = YAML::Load(sceneString); }
     catch (YAML::ParserException e) {
         LOGE("Parsing scene config '%s'", e.what());
         return false;
     }
-    return loadScene(config, _scene);
+    return loadScene(config, scene);
 }
 
 void printFilters(const SceneLayer& layer, int indent){
@@ -64,19 +64,19 @@ void printFilters(const SceneLayer& layer, int indent){
     }
 };
 
-bool SceneLoader::loadScene(Node& config, Scene& _scene) {
+bool SceneLoader::loadScene(Node& config, Scene& scene) {
 
     // Instantiate built-in styles
-    _scene.styles().emplace_back(new PolygonStyle("polygons"));
-    _scene.styles().emplace_back(new PolylineStyle("lines"));
-    _scene.styles().emplace_back(new DebugTextStyle("debugtext", true));
-    _scene.styles().emplace_back(new TextStyle("text", true));
-    _scene.styles().emplace_back(new DebugStyle("debug"));
-    _scene.styles().emplace_back(new PointStyle("points"));
+    scene.styles().emplace_back(new PolygonStyle("polygons"));
+    scene.styles().emplace_back(new PolylineStyle("lines"));
+    scene.styles().emplace_back(new DebugTextStyle("debugtext", true));
+    scene.styles().emplace_back(new TextStyle("text", true));
+    scene.styles().emplace_back(new DebugStyle("debug"));
+    scene.styles().emplace_back(new PointStyle("points"));
 
     if (Node sources = config["sources"]) {
         for (const auto& source : sources) {
-            try { loadSource(source, _scene); }
+            try { loadSource(source, scene); }
             catch (YAML::RepresentationException e) {
                 LOGNode("Parsing sources: '%s'", source, e.what());
             }
@@ -87,7 +87,7 @@ bool SceneLoader::loadScene(Node& config, Scene& _scene) {
 
     if (Node textures = config["textures"]) {
         for (const auto& texture : textures) {
-            try { loadTexture(texture, _scene); }
+            try { loadTexture(texture, scene); }
             catch (YAML::RepresentationException e) {
                 LOGNode("Parsing texture: '%s'", texture, e.what());
             }
@@ -105,7 +105,7 @@ bool SceneLoader::loadScene(Node& config, Scene& _scene) {
             try {
                 auto name = entry.first.Scalar();
                 auto config = entry.second;
-                loadStyle(name, config, _scene);
+                loadStyle(name, config, scene);
             }
             catch (YAML::RepresentationException e) {
                 LOGNode("Parsing style: '%s'", entry, e.what());
@@ -115,18 +115,18 @@ bool SceneLoader::loadScene(Node& config, Scene& _scene) {
 
     // Styles that are opaque must be ordered first in the scene so that
     // they are rendered 'under' styles that require blending
-    std::sort(_scene.styles().begin(), _scene.styles().end(), Style::compare);
+    std::sort(scene.styles().begin(), scene.styles().end(), Style::compare);
 
     // Post style sorting set their respective IDs=>vector indices
     // These indices are used for style geometry lookup in tiles
-    auto& styles = _scene.styles();
+    auto& styles = scene.styles();
     for(uint32_t i = 0; i < styles.size(); i++) {
         styles[i]->setID(i);
     }
 
     if (Node layers = config["layers"]) {
         for (const auto& layer : layers) {
-            try { loadLayer(layer, _scene); }
+            try { loadLayer(layer, scene); }
             catch (YAML::RepresentationException e) {
                 LOGNode("Parsing layer: '%s'", layer, e.what());
             }
@@ -135,7 +135,7 @@ bool SceneLoader::loadScene(Node& config, Scene& _scene) {
 
     if (Node lights = config["lights"]) {
         for (const auto& light : lights) {
-            try { loadLight(light, _scene); }
+            try { loadLight(light, scene); }
             catch (YAML::RepresentationException e) {
                 LOGNode("Parsing light: '%s'", light, e.what());
             }
@@ -144,25 +144,25 @@ bool SceneLoader::loadScene(Node& config, Scene& _scene) {
         // Add an ambient light if nothing else is specified
         std::unique_ptr<AmbientLight> amb(new AmbientLight("defaultLight"));
         amb->setAmbientColor({ 1.f, 1.f, 1.f, 1.f });
-        _scene.lights().push_back(std::move(amb));
+        scene.lights().push_back(std::move(amb));
     }
 
     if (Node cameras = config["cameras"]) {
-        try { loadCameras(cameras, _scene); }
+        try { loadCameras(cameras, scene); }
         catch (YAML::RepresentationException e) {
             LOGNode("Parsing cameras: '%s'", cameras, e.what());
         }
     }
 
-    loadBackground(config["scene"]["background"], _scene);
+    loadBackground(config["scene"]["background"], scene);
 
     Node animated = config["scene"]["animated"];
     if (animated) {
-        _scene.animated(animated.as<bool>());
+        scene.animated(animated.as<bool>());
     }
 
-    for (auto& style : _scene.styles()) {
-        style->build(_scene.lights());
+    for (auto& style : scene.styles()) {
+        style->build(scene.lights());
     }
 
     return true;
@@ -575,7 +575,7 @@ bool SceneLoader::loadStyle(const std::string& name, Node config, Scene& scene) 
     return true;
 }
 
-void SceneLoader::loadSource(const std::pair<Node, Node>& src, Scene& _scene) {
+void SceneLoader::loadSource(const std::pair<Node, Node>& src, Scene& scene) {
 
     const Node source = src.second;
     const std::string& name = src.first.Scalar();
@@ -610,7 +610,7 @@ void SceneLoader::loadSource(const std::pair<Node, Node>& src, Scene& _scene) {
 
     if (sourcePtr) {
         sourcePtr->setCacheSize(CACHE_SIZE);
-        _scene.dataSources().push_back(sourcePtr);
+        scene.dataSources().push_back(sourcePtr);
     }
 }
 
@@ -698,16 +698,16 @@ void SceneLoader::loadLight(const std::pair<Node, Node>& node, Scene& scene) {
     scene.lights().push_back(std::move(sceneLight));
 }
 
-void SceneLoader::loadCameras(Node _cameras, Scene& _scene) {
+void SceneLoader::loadCameras(Node cameras, Scene& scene) {
 
     // To correctly match the behavior of the webGL library we'll need a place
     // to store multiple view instances.  Since we only have one global view
     // right now, we'll just apply the settings from the first active camera we
     // find.
 
-    auto& view = _scene.view();
+    auto& view = scene.view();
 
-    for (const auto& entry : _cameras) {
+    for (const auto& entry : cameras) {
 
         const Node camera = entry.second;
 
@@ -776,22 +776,22 @@ void SceneLoader::loadCameras(Node _cameras, Scene& _scene) {
             z = zoom.as<float>();
         }
 
-        _scene.startPosition = glm::dvec2(x, y);
-        _scene.startZoom = z;
+        scene.startPosition = glm::dvec2(x, y);
+        scene.startZoom = z;
 
     }
 }
 
-Filter SceneLoader::generateFilter(Node _filter, Scene& scene) {
+Filter SceneLoader::generateFilter(Node filter, Scene& scene) {
 
-    if (!_filter) {  return Filter(); }
+    if (!filter) {  return Filter(); }
 
     std::vector<Filter> filters;
 
-    switch (_filter.Type()) {
+    switch (filter.Type()) {
     case NodeType::Scalar: {
 
-        const std::string& val = _filter.Scalar();
+        const std::string& val = filter.Scalar();
 
         if (val.compare(0, 8, "function") == 0) {
             scene.functions().push_back(val);
@@ -800,15 +800,15 @@ Filter SceneLoader::generateFilter(Node _filter, Scene& scene) {
         break;
     }
     case NodeType::Sequence: {
-        for (const auto& filtItr : _filter) {
+        for (const auto& filtItr : filter) {
             filters.push_back(generateFilter(filtItr, scene));
         }
         break;
     }
     case NodeType::Map: {
-        for (const auto& filtItr : _filter) {
+        for (const auto& filtItr : filter) {
             const std::string& key = filtItr.first.Scalar();
-            Node node = _filter[key];
+            Node node = filter[key];
 
             if (key == "none") {
                 filters.push_back(generateNoneFilter(node, scene));
@@ -834,30 +834,30 @@ Filter SceneLoader::generateFilter(Node _filter, Scene& scene) {
     return (Filter::MatchAll(std::move(filters)));
 }
 
-Filter SceneLoader::generatePredicate(Node _node, std::string _key) {
+Filter SceneLoader::generatePredicate(Node node, std::string key) {
 
-    switch (_node.Type()) {
+    switch (node.Type()) {
     case NodeType::Scalar: {
-        if (_node.Tag() == "tag:yaml.org,2002:str") {
+        if (node.Tag() == "tag:yaml.org,2002:str") {
             // Node was explicitly tagged with '!!str' or the canonical tag
             // 'tag:yaml.org,2002:str' yaml-cpp normalizes the tag value to the
             // canonical form
-            return Filter::MatchEquality(_key, { Value(_node.as<std::string>()) });
+            return Filter::MatchEquality(key, { Value(node.as<std::string>()) });
         }
         double number;
-        if (getDouble(_node, number)) {
-            return Filter::MatchEquality(_key, { Value(number) });
+        if (getDouble(node, number)) {
+            return Filter::MatchEquality(key, { Value(number) });
         }
         bool existence;
-        if (getBool(_node, existence)) {
-            return Filter::MatchExistence(_key, existence);
+        if (getBool(node, existence)) {
+            return Filter::MatchExistence(key, existence);
         }
-        const std::string& value = _node.Scalar();
-        return Filter::MatchEquality(_key, { Value(std::move(value)) });
+        const std::string& value = node.Scalar();
+        return Filter::MatchEquality(key, { Value(std::move(value)) });
     }
     case NodeType::Sequence: {
         std::vector<Value> values;
-        for (const auto& valItr : _node) {
+        for (const auto& valItr : node) {
             double number;
             if (getDouble(valItr, number)) {
                 values.emplace_back(number);
@@ -866,61 +866,61 @@ Filter SceneLoader::generatePredicate(Node _node, std::string _key) {
                 values.emplace_back(std::move(value));
             }
         }
-        return Filter::MatchEquality(_key, std::move(values));
+        return Filter::MatchEquality(key, std::move(values));
     }
     case NodeType::Map: {
         double minVal = -std::numeric_limits<double>::infinity();
         double maxVal = std::numeric_limits<double>::infinity();
 
-        for (const auto& valItr : _node) {
+        for (const auto& valItr : node) {
             if (valItr.first.Scalar() == "min") {
 
                 if (!getDouble(valItr.second, minVal, "min")) {
-                    LOGNode("Invalid  'filter'", _node);
+                    LOGNode("Invalid  'filter'", node);
                     return Filter();
                 }
             } else if (valItr.first.Scalar() == "max") {
 
                 if (!getDouble(valItr.second, maxVal, "max")) {
-                    LOGNode("Invalid  'filter'", _node);
+                    LOGNode("Invalid  'filter'", node);
                     return Filter();
                 }
             } else {
-                LOGNode("Invalid  'filter'", _node);
+                LOGNode("Invalid  'filter'", node);
                 return Filter();
             }
         }
-        return Filter::MatchRange(_key, minVal, maxVal);
+        return Filter::MatchRange(key, minVal, maxVal);
     }
     default:
-        LOGNode("Invalid 'filter'", _node);
+        LOGNode("Invalid 'filter'", node);
         return Filter();
     }
 }
 
-Filter SceneLoader::generateAnyFilter(Node _filter, Scene& scene) {
+Filter SceneLoader::generateAnyFilter(Node filter, Scene& scene) {
     std::vector<Filter> filters;
 
-    if (!_filter.IsSequence()) {
+    if (!filter.IsSequence()) {
         LOGW("Invalid filter. 'Any' expects a list.");
         return Filter();
     }
-    for (const auto& filt : _filter) {
+    for (const auto& filt : filter) {
         filters.emplace_back(generateFilter(filt, scene));
     }
     return Filter::MatchAny(std::move(filters));
 }
 
-Filter SceneLoader::generateNoneFilter(Node _filter, Scene& scene) {
+Filter SceneLoader::generateNoneFilter(Node filter, Scene& scene) {
 
     std::vector<Filter> filters;
 
-    if (_filter.IsSequence()) {
-        for (const auto& filt : _filter) {
+    if (filter.IsSequence()) {
+        for (const auto& filt : filter) {
             filters.emplace_back(generateFilter(filt, scene));
         }
-    } else if (_filter.IsMap() || _filter.IsScalar()) { // not case
-        filters.emplace_back(generateFilter(_filter, scene));
+    } else if (filter.IsMap() || filter.IsScalar()) { // not case
+        filters.emplace_back(generateFilter(filter, scene));
     } else {
         LOGW("Invalid filter. 'None' expects a list or an object.");
         return Filter();

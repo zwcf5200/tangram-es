@@ -12,10 +12,10 @@ class DebugTextStyleBuilder : public TextStyleBuilder {
 
 public:
 
-    DebugTextStyleBuilder(const TextStyle& _style)
-        : TextStyleBuilder(_style) {}
+    DebugTextStyleBuilder(const TextStyle& style)
+        : TextStyleBuilder(style) {}
 
-    void setup(const Tile& _tile) override;
+    void setup(const Tile& tile) override;
 
     std::unique_ptr<StyledMesh> build() override;
 
@@ -24,14 +24,14 @@ private:
 
 };
 
-void DebugTextStyleBuilder::setup(const Tile& _tile) {
+void DebugTextStyleBuilder::setup(const Tile& tile) {
     if (!Tangram::getDebugFlag(Tangram::DebugFlags::tile_infos)) {
         return;
     }
 
-    m_tileID = _tile.getID().toString();
+    m_tileID = tile.getID().toString();
 
-    TextStyleBuilder::setup(_tile);
+    TextStyleBuilder::setup(tile);
 }
 
 std::unique_ptr<StyledMesh> DebugTextStyleBuilder::build() {

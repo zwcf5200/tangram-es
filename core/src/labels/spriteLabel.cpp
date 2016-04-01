@@ -13,15 +13,15 @@ const float SpriteVertex::alpha_scale = 255.f;
 const float SpriteVertex::texture_scale = 65535.f;
 const float SpriteVertex::extrusion_scale = 256.0f;
 
-SpriteLabel::SpriteLabel(Label::Transform _transform, glm::vec2 _size, Label::Options _options,
-                         float _extrudeScale, LabelProperty::Anchor _anchor,
-                         SpriteLabels& _labels, size_t _labelsPos)
-    : Label(_transform, _size, Label::Type::point, _options),
-      m_labels(_labels),
-      m_labelsPos(_labelsPos),
-      m_extrudeScale(_extrudeScale)
+SpriteLabel::SpriteLabel(Label::Transform transform, glm::vec2 size, Label::Options options,
+                         float extrudeScale, LabelProperty::Anchor anchor,
+                         SpriteLabels& labels, size_t labelsPos)
+    : Label(transform, size, Label::Type::point, options),
+      m_labels(labels),
+      m_labelsPos(labelsPos),
+      m_extrudeScale(extrudeScale)
 {
-    switch(_anchor) {
+    switch(anchor) {
         case Anchor::left: m_anchor = glm::vec2(1.0, 0.5); break;
         case Anchor::right: m_anchor = glm::vec2(0.0, 0.5); break;
         case Anchor::top: m_anchor = glm::vec2(0.5, 0.0); break;
@@ -34,21 +34,21 @@ SpriteLabel::SpriteLabel(Label::Transform _transform, glm::vec2 _size, Label::Op
     }
 }
 
-void SpriteLabel::updateBBoxes(float _zoomFract) {
+void SpriteLabel::updateBBoxes(float zoomFract) {
     glm::vec2 halfSize = m_dim * 0.5f;
     glm::vec2 sp = m_transform.state.screenPos;
-    glm::vec2 dim = m_dim + glm::vec2(m_extrudeScale * 2.f * _zoomFract);
+    glm::vec2 dim = m_dim + glm::vec2(m_extrudeScale * 2.f * zoomFract);
     m_obb = OBB(sp.x + halfSize.x, sp.y - halfSize.y, m_transform.state.rotation, dim.x, dim.y);
     m_aabb = m_obb.getExtent();
 }
 
-void SpriteLabel::align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) {
+void SpriteLabel::align(glm::vec2& screenPosition, const glm::vec2& ap1, const glm::vec2& ap2) {
 
     switch (m_type) {
         case Type::debug:
         case Type::point:
-            _screenPosition.x -= m_dim.x * m_anchor.x;
-            _screenPosition.y += m_dim.y * m_anchor.y;
+            screenPosition.x -= m_dim.x * m_anchor.x;
+            screenPosition.y += m_dim.y * m_anchor.y;
             break;
         case Type::line:
             LOGW("Line sprite labels not implemented yet");

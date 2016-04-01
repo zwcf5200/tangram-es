@@ -15,10 +15,10 @@ public:
     Vao();
     ~Vao();
 
-    void init(ShaderProgram& _program, const std::vector<std::pair<uint32_t, uint32_t>>& _vertexOffsets,
-              VertexLayout& _layout, GLuint _vertexBuffer, GLuint _indexBuffer);
+    void init(ShaderProgram& program, const std::vector<std::pair<uint32_t, uint32_t>>& vertexOffsets,
+              VertexLayout& layout, GLuint vertexBuffer, GLuint indexBuffer);
 
-    void bind(unsigned int _index);
+    void bind(unsigned int index);
     void unbind();
 
 private:

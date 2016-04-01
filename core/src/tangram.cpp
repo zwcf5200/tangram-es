@@ -47,13 +47,13 @@ std::unique_ptr<InputHandler> m_inputHandler;
 
 std::array<Ease, 4> m_eases;
 enum class EaseField { position, zoom, rotation, tilt };
-void setEase(EaseField _f, Ease _e) {
-    m_eases[static_cast<size_t>(_f)] = _e;
+void setEase(EaseField f, Ease e) {
+    m_eases[static_cast<size_t>(f)] = e;
     requestRender();
 }
-void clearEase(EaseField _f) {
+void clearEase(EaseField f) {
     static Ease none = {};
-    m_eases[static_cast<size_t>(_f)] = none;
+    m_eases[static_cast<size_t>(f)] = none;
 }
 
 static float g_time = 0.0;
@@ -63,7 +63,7 @@ int log_level = 2;
 
 static float lastUpdateTime = 0.0;
 
-void initialize(const char* _scenePath) {
+void initialize(const char* scenePath) {
 
     if (m_tileManager) {
         LOG("Notice: Already initialized");
@@ -90,7 +90,7 @@ void initialize(const char* _scenePath) {
     // label setup
     m_labels = std::make_unique<Labels>();
 
-    loadScene(_scenePath, true);
+    loadScene(scenePath, true);
 
     glm::dvec2 projPos = m_view->getMapProjection().LonLatToMeters(m_scene->startPosition);
     m_view->setPosition(projPos.x, projPos.y);
@@ -100,10 +100,10 @@ void initialize(const char* _scenePath) {
 
 }
 
-void loadScene(const char* _scenePath, bool _setPositionFromScene) {
-    LOG("Loading scene file: %s", _scenePath);
+void loadScene(const char* scenePath, bool setPositionFromScene) {
+    LOG("Loading scene file: %s", scenePath);
 
-    auto sceneString = stringFromFile(setResourceRoot(_scenePath).c_str(), PathType::resource);
+    auto sceneString = stringFromFile(setResourceRoot(scenePath).c_str(), PathType::resource);
 
     bool setPositionFromCurrentView = bool(m_scene);
 
@@ -113,7 +113,7 @@ void loadScene(const char* _scenePath, bool _setPositionFromScene) {
     }
     if (SceneLoader::loadScene(sceneString, *scene)) {
         m_scene = scene;
-        if (setPositionFromCurrentView && !_setPositionFromScene) {
+        if (setPositionFromCurrentView && !setPositionFromScene) {
             m_scene->view()->setPosition(m_view->getPosition());
             m_scene->view()->setZoom(m_view->getZoom());
         }
@@ -126,37 +126,37 @@ void loadScene(const char* _scenePath, bool _setPositionFromScene) {
     }
 }
 
-void resize(int _newWidth, int _newHeight) {
+void resize(int newWidth, int newHeight) {
 
-    LOGS("resize: %d x %d", _newWidth, _newHeight);
-    LOG("resize: %d x %d", _newWidth, _newHeight);
+    LOGS("resize: %d x %d", newWidth, newHeight);
+    LOG("resize: %d x %d", newWidth, newHeight);
 
-    glViewport(0, 0, _newWidth, _newHeight);
+    glViewport(0, 0, newWidth, newHeight);
 
     if (m_view) {
-        m_view->setSize(_newWidth, _newHeight);
+        m_view->setSize(newWidth, newHeight);
     }
 
-    Primitives::setResolution(_newWidth, _newHeight);
+    Primitives::setResolution(newWidth, newHeight);
 
     while (Error::hadGlError("Tangram::resize()")) {}
 
 }
 
-void update(float _dt) {
+void update(float dt) {
 
     clock_t start{0};
     if (Tangram::getDebugFlag(Tangram::DebugFlags::tangram_infos)) {
         start = clock();
     }
 
-    g_time += _dt;
+    g_time += dt;
 
     for (auto& ease : m_eases) {
-        if (!ease.finished()) { ease.update(_dt); }
+        if (!ease.finished()) { ease.update(dt); }
     }
 
-    m_inputHandler->update(_dt);
+    m_inputHandler->update(dt);
 
     m_view->update();
 
@@ -197,14 +197,14 @@ void update(float _dt) {
 
         if (m_view->changedOnLastUpdate() || m_tileManager->hasTileSetChanged()) {
             for (const auto& tile : tiles) {
-                tile->update(_dt, *m_view);
+                tile->update(dt, *m_view);
             }
             updateLabels = true;
         }
 
         if (updateLabels) {
             auto& cache = m_tileManager->getTileCache();
-            m_labels->update(*m_view, _dt, m_scene->styles(), tiles, cache);
+            m_labels->update(*m_view, dt, m_scene->styles(), tiles, cache);
         }
     }
 
@@ -316,60 +316,60 @@ void render() {
     while (Error::hadGlError("Tangram::render()")) {}
 }
 
-void setPositionNow(double _lon, double _lat) {
+void setPositionNow(double lon, double lat) {
 
-    glm::dvec2 meters = m_view->getMapProjection().LonLatToMeters({ _lon, _lat});
+    glm::dvec2 meters = m_view->getMapProjection().LonLatToMeters({ lon, lat});
     m_view->setPosition(meters.x, meters.y);
     m_inputHandler->cancelFling();
     requestRender();
 
 }
 
-void setPosition(double _lon, double _lat) {
+void setPosition(double lon, double lat) {
 
-    setPositionNow(_lon, _lat);
+    setPositionNow(lon, lat);
     clearEase(EaseField::position);
 
 }
 
-void setPosition(double _lon, double _lat, float _duration, EaseType _e) {
+void setPosition(double lon, double lat, float duration, EaseType e) {
 
     double lon_start, lat_start;
     getPosition(lon_start, lat_start);
-    auto cb = [=](float t) { setPositionNow(ease(lon_start, _lon, t, _e), ease(lat_start, _lat, t, _e)); };
-    setEase(EaseField::position, { _duration, cb });
+    auto cb = [=](float t) { setPositionNow(ease(lon_start, lon, t, e), ease(lat_start, lat, t, e)); };
+    setEase(EaseField::position, { duration, cb });
 
 }
 
-void getPosition(double& _lon, double& _lat) {
+void getPosition(double& lon, double& lat) {
 
     glm::dvec2 meters(m_view->getPosition().x, m_view->getPosition().y);
     glm::dvec2 degrees = m_view->getMapProjection().MetersToLonLat(meters);
-    _lon = degrees.x;
-    _lat = degrees.y;
+    lon = degrees.x;
+    lat = degrees.y;
 
 }
 
-void setZoomNow(float _z) {
+void setZoomNow(float z) {
 
-    m_view->setZoom(_z);
+    m_view->setZoom(z);
     m_inputHandler->cancelFling();
     requestRender();
 
 }
 
-void setZoom(float _z) {
+void setZoom(float z) {
 
-    setZoomNow(_z);
+    setZoomNow(z);
     clearEase(EaseField::zoom);
 
 }
 
-void setZoom(float _z, float _duration, EaseType _e) {
+void setZoom(float z, float duration, EaseType e) {
 
     float z_start = getZoom();
-    auto cb = [=](float t) { setZoomNow(ease(z_start, _z, t, _e)); };
-    setEase(EaseField::zoom, { _duration, cb });
+    auto cb = [=](float t) { setZoomNow(ease(z_start, z, t, e)); };
+    setEase(EaseField::zoom, { duration, cb });
 
 }
 
@@ -379,31 +379,31 @@ float getZoom() {
 
 }
 
-void setRotationNow(float _radians) {
+void setRotationNow(float radians) {
 
-    m_view->setRoll(_radians);
+    m_view->setRoll(radians);
     requestRender();
 
 }
 
-void setRotation(float _radians) {
+void setRotation(float radians) {
 
-    setRotationNow(_radians);
+    setRotationNow(radians);
     clearEase(EaseField::rotation);
 
 }
 
-void setRotation(float _radians, float _duration, EaseType _e) {
+void setRotation(float radians, float duration, EaseType e) {
 
     float radians_start = getRotation();
 
     // Ease over the smallest angular distance needed
-    float radians_delta = glm::mod(_radians - radians_start, (float)TWO_PI);
+    float radians_delta = glm::mod(radians - radians_start, (float)TWO_PI);
     if (radians_delta > PI) { radians_delta -= TWO_PI; }
-    _radians = radians_start + radians_delta;
+    radians = radians_start + radians_delta;
 
-    auto cb = [=](float t) { setRotationNow(ease(radians_start, _radians, t, _e)); };
-    setEase(EaseField::rotation, { _duration, cb });
+    auto cb = [=](float t) { setRotationNow(ease(radians_start, radians, t, e)); };
+    setEase(EaseField::rotation, { duration, cb });
 
 }
 
@@ -414,25 +414,25 @@ float getRotation() {
 }
 
 
-void setTiltNow(float _radians) {
+void setTiltNow(float radians) {
 
-    m_view->setPitch(_radians);
+    m_view->setPitch(radians);
     requestRender();
 
 }
 
-void setTilt(float _radians) {
+void setTilt(float radians) {
 
-    setTiltNow(_radians);
+    setTiltNow(radians);
     clearEase(EaseField::tilt);
 
 }
 
-void setTilt(float _radians, float _duration, EaseType _e) {
+void setTilt(float radians, float duration, EaseType e) {
 
     float tilt_start = getTilt();
-    auto cb = [=](float t) { setTiltNow(ease(tilt_start, _radians, t, _e)); };
-    setEase(EaseField::tilt, { _duration, cb });
+    auto cb = [=](float t) { setTiltNow(ease(tilt_start, radians, t, e)); };
+    setEase(EaseField::tilt, { duration, cb });
 
 }
 
@@ -442,33 +442,33 @@ float getTilt() {
 
 }
 
-void screenToWorldCoordinates(double& _x, double& _y) {
+void screenToWorldCoordinates(double& x, double& y) {
 
-    m_view->screenToGroundPlane(_x, _y);
-    glm::dvec2 meters(_x + m_view->getPosition().x, _y + m_view->getPosition().y);
+    m_view->screenToGroundPlane(x, y);
+    glm::dvec2 meters(x + m_view->getPosition().x, y + m_view->getPosition().y);
     glm::dvec2 lonLat = m_view->getMapProjection().MetersToLonLat(meters);
-    _x = lonLat.x;
-    _y = lonLat.y;
+    x = lonLat.x;
+    y = lonLat.y;
 
 }
 
-void setPixelScale(float _pixelsPerPoint) {
+void setPixelScale(float pixelsPerPoint) {
 
-    m_pixelsPerPoint = _pixelsPerPoint;
+    m_pixelsPerPoint = pixelsPerPoint;
 
     if (m_view) {
-        m_view->setPixelScale(_pixelsPerPoint);
+        m_view->setPixelScale(pixelsPerPoint);
     }
 
     for (auto& style : m_scene->styles()) {
-        style->setPixelScale(_pixelsPerPoint);
+        style->setPixelScale(pixelsPerPoint);
     }
 }
 
-void setCameraType(uint8_t _cameraType) {
+void setCameraType(uint8_t cameraType) {
 
     if (m_view) {
-        m_view->setCameraType(static_cast<CameraType>(_cameraType));
+        m_view->setCameraType(static_cast<CameraType>(cameraType));
     }
 }
 
@@ -476,11 +476,11 @@ uint8_t getCameraType() {
     return static_cast<uint8_t>(m_view->cameraType());
 }
 
-void addDataSource(std::shared_ptr<DataSource> _source) {
+void addDataSource(std::shared_ptr<DataSource> source) {
     if (!m_tileManager) { return; }
     std::lock_guard<std::mutex> lock(m_tilesMutex);
 
-    m_tileManager->addDataSource(_source);
+    m_tileManager->addDataSource(source);
 }
 
 bool removeDataSource(DataSource& source) {
@@ -490,80 +490,80 @@ bool removeDataSource(DataSource& source) {
     return m_tileManager->removeDataSource(source);
 }
 
-void clearDataSource(DataSource& _source, bool _data, bool _tiles) {
+void clearDataSource(DataSource& source, bool data, bool tiles) {
     if (!m_tileManager) { return; }
     std::lock_guard<std::mutex> lock(m_tilesMutex);
 
-    if (_tiles) { m_tileManager->clearTileSet(_source.id()); }
-    if (_data) { _source.clearData(); }
+    if (tiles) { m_tileManager->clearTileSet(source.id()); }
+    if (data) { source.clearData(); }
 
     requestRender();
 }
 
-void handleTapGesture(float _posX, float _posY) {
+void handleTapGesture(float posX, float posY) {
 
-    m_inputHandler->handleTapGesture(_posX, _posY);
-
-}
-
-void handleDoubleTapGesture(float _posX, float _posY) {
-
-    m_inputHandler->handleDoubleTapGesture(_posX, _posY);
+    m_inputHandler->handleTapGesture(posX, posY);
 
 }
 
-void handlePanGesture(float _startX, float _startY, float _endX, float _endY) {
+void handleDoubleTapGesture(float posX, float posY) {
 
-    m_inputHandler->handlePanGesture(_startX, _startY, _endX, _endY);
-
-}
-
-void handleFlingGesture(float _posX, float _posY, float _velocityX, float _velocityY) {
-
-    m_inputHandler->handleFlingGesture(_posX, _posY, _velocityX, _velocityY);
+    m_inputHandler->handleDoubleTapGesture(posX, posY);
 
 }
 
-void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity) {
+void handlePanGesture(float startX, float startY, float endX, float endY) {
 
-    m_inputHandler->handlePinchGesture(_posX, _posY, _scale, _velocity);
-
-}
-
-void handleRotateGesture(float _posX, float _posY, float _radians) {
-
-    m_inputHandler->handleRotateGesture(_posX, _posY, _radians);
+    m_inputHandler->handlePanGesture(startX, startY, endX, endY);
 
 }
 
-void handleShoveGesture(float _distance) {
+void handleFlingGesture(float posX, float posY, float velocityX, float velocityY) {
 
-    m_inputHandler->handleShoveGesture(_distance);
+    m_inputHandler->handleFlingGesture(posX, posY, velocityX, velocityY);
 
 }
 
-void setDebugFlag(DebugFlags _flag, bool _on) {
+void handlePinchGesture(float posX, float posY, float scale, float velocity) {
 
-    g_flags.set(_flag, _on);
+    m_inputHandler->handlePinchGesture(posX, posY, scale, velocity);
+
+}
+
+void handleRotateGesture(float posX, float posY, float radians) {
+
+    m_inputHandler->handleRotateGesture(posX, posY, radians);
+
+}
+
+void handleShoveGesture(float distance) {
+
+    m_inputHandler->handleShoveGesture(distance);
+
+}
+
+void setDebugFlag(DebugFlags flag, bool on) {
+
+    g_flags.set(flag, on);
     m_view->setZoom(m_view->getZoom()); // Force the view to refresh
 
 }
 
-bool getDebugFlag(DebugFlags _flag) {
+bool getDebugFlag(DebugFlags flag) {
 
-    return g_flags.test(_flag);
+    return g_flags.test(flag);
 
 }
 
-void toggleDebugFlag(DebugFlags _flag) {
+void toggleDebugFlag(DebugFlags flag) {
 
-    g_flags.flip(_flag);
+    g_flags.flip(flag);
     m_view->setZoom(m_view->getZoom()); // Force the view to refresh
 
     // Rebuild tiles for debug modes that needs it
-    if (_flag == DebugFlags::proxy_colors
-     || _flag == DebugFlags::tile_bounds
-     || _flag == DebugFlags::tile_infos) {
+    if (flag == DebugFlags::proxy_colors
+     || flag == DebugFlags::tile_bounds
+     || flag == DebugFlags::tile_infos) {
         if (m_tileManager) {
             std::lock_guard<std::mutex> lock(m_tilesMutex);
             m_tileManager->clearTileSets();
@@ -571,10 +571,10 @@ void toggleDebugFlag(DebugFlags _flag) {
     }
 }
 
-const std::vector<TouchItem>& pickFeaturesAt(float _x, float _y) {
+const std::vector<TouchItem>& pickFeaturesAt(float x, float y) {
     return m_labels->getFeaturesAtPoint(*m_view, 0, m_scene->styles(),
                                         m_tileManager->getVisibleTiles(),
-                                        _x, _y);
+                                        x, y);
 }
 
 
@@ -604,9 +604,9 @@ void setupGL() {
     while (Error::hadGlError("Tangram::setupGL()")) {}
 }
 
-void runOnMainLoop(std::function<void()> _task) {
+void runOnMainLoop(std::function<void()> task) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
-    m_tasks.emplace(std::move(_task));
+    m_tasks.emplace(std::move(task));
 }
 
 float frameTime() {

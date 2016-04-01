@@ -10,7 +10,7 @@ std::unordered_map<GLenum, std::string> Error::s_GlErrorCodesToStrings = {
         {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"}
     };
 
-bool Error::hadGlError(const std::string& _locationTag) {
+bool Error::hadGlError(const std::string& locationTag) {
 
     GLenum error = glGetError();
 
@@ -18,7 +18,7 @@ bool Error::hadGlError(const std::string& _locationTag) {
 
         std::string errorString = s_GlErrorCodesToStrings[error];
 
-        LOGE("%s at %s", errorString.c_str(), _locationTag.c_str());
+        LOGE("%s at %s", errorString.c_str(), locationTag.c_str());
 
         return true;
     }

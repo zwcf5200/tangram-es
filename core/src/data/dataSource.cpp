@@ -31,18 +31,18 @@ struct RawCache {
     int m_usage = 0;
     int m_maxUsage = 0;
 
-    bool get(DownloadTileTask& _task) {
+    bool get(DownloadTileTask& task) {
 
         if (m_maxUsage <= 0) { return false; }
 
         std::lock_guard<std::mutex> lock(m_mutex);
-        TileID id(_task.tileId().x, _task.tileId().y, _task.tileId().z);
+        TileID id(task.tileId().x, task.tileId().y, task.tileId().z);
 
         auto it = m_cacheMap.find(id);
         if (it != m_cacheMap.end()) {
             // Move cached entry to start of list
             m_cacheList.splice(m_cacheList.begin(), m_cacheList, it->second);
-            _task.rawTileData = m_cacheList.front().second;
+            task.rawTileData = m_cacheList.front().second;
 
             return true;
         }
@@ -89,8 +89,8 @@ struct RawCache {
 
 static std::atomic<int32_t> s_serial;
 
-DataSource::DataSource(const std::string& _name, const std::string& _urlTemplate, int32_t _maxZoom) :
-    m_name(_name), m_maxZoom(_maxZoom), m_urlTemplate(_urlTemplate),
+DataSource::DataSource(const std::string& name, const std::string& urlTemplate, int32_t maxZoom) :
+    m_name(name), m_maxZoom(maxZoom), m_urlTemplate(urlTemplate),
     m_cache(std::make_unique<RawCache>()){
 
     m_id = s_serial++;
@@ -100,16 +100,16 @@ DataSource::~DataSource() {
     clearData();
 }
 
-std::shared_ptr<TileTask> DataSource::createTask(TileID _tileId) {
-    auto task = std::make_shared<DownloadTileTask>(_tileId, shared_from_this());
+std::shared_ptr<TileTask> DataSource::createTask(TileID tileId) {
+    auto task = std::make_shared<DownloadTileTask>(tileId, shared_from_this());
 
     m_cache->get(*task);
 
     return task;
 }
 
-void DataSource::setCacheSize(size_t _cacheSize) {
-    m_cache->m_maxUsage = _cacheSize;
+void DataSource::setCacheSize(size_t cacheSize) {
+    m_cache->m_maxUsage = cacheSize;
 }
 
 void DataSource::clearData() {
@@ -117,52 +117,52 @@ void DataSource::clearData() {
     m_generation++;
 }
 
-void DataSource::constructURL(const TileID& _tileCoord, std::string& _url) const {
-    _url.assign(m_urlTemplate);
+void DataSource::constructURL(const TileID& tileCoord, std::string& url) const {
+    url.assign(m_urlTemplate);
     try {
-        size_t xpos = _url.find("{x}");
-        _url.replace(xpos, 3, std::to_string(_tileCoord.x));
-        size_t ypos = _url.find("{y}");
-        _url.replace(ypos, 3, std::to_string(_tileCoord.y));
-        size_t zpos = _url.find("{z}");
-        _url.replace(zpos, 3, std::to_string(_tileCoord.z));
+        size_t xpos = url.find("{x}");
+        url.replace(xpos, 3, std::to_string(tileCoord.x));
+        size_t ypos = url.find("{y}");
+        url.replace(ypos, 3, std::to_string(tileCoord.y));
+        size_t zpos = url.find("{z}");
+        url.replace(zpos, 3, std::to_string(tileCoord.z));
     } catch(...) {
         LOGE("Bad URL template!");
     }
 }
 
-void DataSource::onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task, TileTaskCb _cb) {
-    TileID tileID = _task->tileId();
+void DataSource::onTileLoaded(std::vector<char>&& rawData, std::shared_ptr<TileTask>& task, TileTaskCb cb) {
+    TileID tileID = task->tileId();
 
-    if (!_rawData.empty()) {
+    if (!rawData.empty()) {
 
         auto rawDataRef = std::make_shared<std::vector<char>>();
-        std::swap(*rawDataRef, _rawData);
+        std::swap(*rawDataRef, rawData);
 
-        auto& task = static_cast<DownloadTileTask&>(*_task);
-        task.rawTileData = rawDataRef;
+        auto& dltask = static_cast<DownloadTileTask&>(*task);
+        dltask.rawTileData = rawDataRef;
 
-        _cb.func(std::move(_task));
+        cb.func(std::move(task));
 
         m_cache->put(tileID, rawDataRef);
     }
 }
 
 
-bool DataSource::loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb) {
+bool DataSource::loadTileData(std::shared_ptr<TileTask>&& task, TileTaskCb cb) {
 
-    std::string url(constructURL(_task->tileId()));
+    std::string url(constructURL(task->tileId()));
 
     // Using bind instead of lambda to be able to 'move' (until c++14)
     return startUrlRequest(url, std::bind(&DataSource::onTileLoaded,
                                           this,
                                           std::placeholders::_1,
-                                          std::move(_task), _cb));
+                                          std::move(task), cb));
 
 }
 
-void DataSource::cancelLoadingTile(const TileID& _tileID) {
-    cancelUrlRequest(constructURL(_tileID));
+void DataSource::cancelLoadingTile(const TileID& tileID) {
+    cancelUrlRequest(constructURL(tileID));
 }
 
 }

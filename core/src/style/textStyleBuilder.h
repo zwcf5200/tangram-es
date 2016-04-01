@@ -16,25 +16,25 @@ class TextStyleBuilder : public StyleBuilder {
 
 public:
 
-    TextStyleBuilder(const TextStyle& _style);
+    TextStyleBuilder(const TextStyle& style);
 
     const Style& style() const override { return m_style; }
 
-    void addFeature(const Feature& _feature, const DrawRule& _rule) override;
+    void addFeature(const Feature& feature, const DrawRule& rule) override;
 
-    void setup(const Tile& _tile) override;
+    void setup(const Tile& tile) override;
 
     std::unique_ptr<StyledMesh> build() override;
 
-    TextStyle::Parameters applyRule(const DrawRule& _rule, const Properties& _props) const;
+    TextStyle::Parameters applyRule(const DrawRule& rule, const Properties& props) const;
 
-    bool prepareLabel(TextStyle::Parameters& _params, Label::Type _type);
+    bool prepareLabel(TextStyle::Parameters& params, Label::Type type);
 
     // Add label to the mesh using the prepared label data
-    void addLabel(const TextStyle::Parameters& _params, Label::Type _type,
-                  Label::Transform _transform);
+    void addLabel(const TextStyle::Parameters& params, Label::Type type,
+                  Label::Transform transform);
 
-    std::string applyTextTransform(const TextStyle::Parameters& _params, const std::string& _string);
+    std::string applyTextTransform(const TextStyle::Parameters& params, const std::string& string);
 
     std::string resolveTextSource(const std::string& textSource, const Properties& props) const;
 

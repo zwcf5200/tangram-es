@@ -18,9 +18,9 @@ uint32_t maxTextureSize = 0;
 uint32_t maxCombinedTextureUnits = 0;
 static char* s_glExtensions;
 
-bool isAvailable(std::string _extension) {
+bool isAvailable(std::string extension) {
     return bool(s_glExtensions)
-      ? strstr(s_glExtensions, _extension.c_str()) != nullptr
+      ? strstr(s_glExtensions, extension.c_str()) != nullptr
       : false;
 }
 

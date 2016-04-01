@@ -28,11 +28,11 @@ enum class LightOrigin {
 };
 
 struct LightUniforms {
-    LightUniforms(ShaderProgram& _shader, const std::string& _name)
-        : shader(_shader),
-          ambient(_name+".ambient"),
-          diffuse(_name+".diffuse"),
-          specular(_name+".specular") {}
+    LightUniforms(ShaderProgram& shader, const std::string& name)
+        : shader(shader),
+          ambient(name+".ambient"),
+          diffuse(name+".diffuse"),
+          specular(name+".specular") {}
 
     ShaderProgram& shader;
 
@@ -49,24 +49,24 @@ class Light {
 public:
 
     /* All lights have a name*/
-    Light(const std::string& _name, bool _dynamic = false);
+    Light(const std::string& name, bool dynamic = false);
 
     virtual ~Light();
 
     /*  This name is used to construct the uniform name to be pass to the shader */
-    virtual void setInstanceName(const std::string &_name);
+    virtual void setInstanceName(const std::string &name);
 
     /*  Set Ambient Color. Which is constant across the scene */
-    virtual void setAmbientColor(const glm::vec4 _ambient);
+    virtual void setAmbientColor(const glm::vec4 ambient);
 
     /*  Set Diffuse Color. What we generaly understand for color of a light */
-    virtual void setDiffuseColor(const glm::vec4 _diffuse);
+    virtual void setDiffuseColor(const glm::vec4 diffuse);
 
     /*  Set Specular Color. This are the intense reflections of a light. AKA shinny spot */
-    virtual void setSpecularColor(const glm::vec4 _specular);
+    virtual void setSpecularColor(const glm::vec4 specular);
 
     /*  Set the origin relative to which this light will be positioned */
-    virtual void setOrigin( LightOrigin _origin );
+    virtual void setOrigin( LightOrigin origin );
 
     /*  Get the instances light name defined on the shader */
     virtual std::string getInstanceName();
@@ -81,20 +81,20 @@ public:
      * Inject the needed lines of GLSL code on the shader to make this light work
      * Returns LightUniforms for passing to setupProgram if this light is dynamic
      */
-    virtual std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& _shader) = 0;
+    virtual std::unique_ptr<LightUniforms> injectOnProgram(ShaderProgram& shader) = 0;
 
     /*  Pass the uniforms for this particular DYNAMICAL light on the passed shader */
-    virtual void setupProgram(const View& _view, LightUniforms& _uniforms);
+    virtual void setupProgram(const View& view, LightUniforms& uniforms);
 
     /*  STATIC Function that compose sourceBlocks with Lights on a ProgramShader */
-    static void assembleLights(std::map<std::string, std::vector<std::string>>& _sourceBlocks);
+    static void assembleLights(std::map<std::string, std::vector<std::string>>& sourceBlocks);
 
 protected:
 
     /*
      * Inject the needed lines of GLSL code on the shader to make this light work
      */
-    void injectSourceBlocks(ShaderProgram& _shader);
+    void injectSourceBlocks(ShaderProgram& shader);
 
     /*  Get the uniform name of the DYNAMICAL light */
     virtual std::string getUniformName();

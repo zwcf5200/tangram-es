@@ -10,66 +10,66 @@ namespace Tangram {
 Material::Material() {
 }
 
-void Material::setEmission(glm::vec4 _emission){
-    m_emission = _emission;
+void Material::setEmission(glm::vec4 emission){
+    m_emission = emission;
     m_emission_texture.tex.reset();
     setEmissionEnabled(true);
 }
 
-void Material::setEmission(MaterialTexture _emissionTexture){
-    m_emission_texture = _emissionTexture;
+void Material::setEmission(MaterialTexture emissionTexture){
+    m_emission_texture = emissionTexture;
     m_emission = glm::vec4(m_emission_texture.amount, 1.f);
     setEmissionEnabled((bool)m_emission_texture.tex);
 }
 
-void Material::setAmbient(glm::vec4 _ambient){
-    m_ambient = _ambient;
+void Material::setAmbient(glm::vec4 ambient){
+    m_ambient = ambient;
     m_ambient_texture.tex.reset();
     setAmbientEnabled(true);
 }
 
-void Material::setAmbient(MaterialTexture _ambientTexture){
-    m_ambient_texture = _ambientTexture;
+void Material::setAmbient(MaterialTexture ambientTexture){
+    m_ambient_texture = ambientTexture;
     m_ambient = glm::vec4(m_ambient_texture.amount, 1.f);
     setAmbientEnabled((bool)m_ambient_texture.tex);
 }
 
-void Material::setDiffuse(glm::vec4 _diffuse){
-    m_diffuse = _diffuse;
+void Material::setDiffuse(glm::vec4 diffuse){
+    m_diffuse = diffuse;
     m_diffuse_texture.tex.reset();
     setDiffuseEnabled(true);
 }
 
-void Material::setDiffuse(MaterialTexture _diffuseTexture){
-    m_diffuse_texture = _diffuseTexture;
+void Material::setDiffuse(MaterialTexture diffuseTexture){
+    m_diffuse_texture = diffuseTexture;
     m_diffuse = glm::vec4(m_diffuse_texture.amount, 1.f);
     setDiffuseEnabled((bool)m_diffuse_texture.tex);
 }
 
-void Material::setSpecular(glm::vec4 _specular){
-    m_specular = _specular;
+void Material::setSpecular(glm::vec4 specular){
+    m_specular = specular;
     m_specular_texture.tex.reset();
     setSpecularEnabled(true);
 }
 
-void Material::setSpecular(MaterialTexture _specularTexture){
-    m_specular_texture = _specularTexture;
+void Material::setSpecular(MaterialTexture specularTexture){
+    m_specular_texture = specularTexture;
     m_specular = glm::vec4(m_specular_texture.amount, 1.f);
     setSpecularEnabled((bool)m_specular_texture.tex);
 }
 
-void Material::setShininess(float _shiny) {
-    m_shininess = _shiny;
+void Material::setShininess(float shiny) {
+    m_shininess = shiny;
     setSpecularEnabled(true);
 }
 
-void Material::setEmissionEnabled(bool _enable) { m_bEmission = _enable; }
-void Material::setAmbientEnabled(bool _enable) { m_bAmbient = _enable; }
-void Material::setDiffuseEnabled(bool _enable) { m_bDiffuse = _enable; }
-void Material::setSpecularEnabled(bool _enable) { m_bSpecular = _enable; }
+void Material::setEmissionEnabled(bool enable) { m_bEmission = enable; }
+void Material::setAmbientEnabled(bool enable) { m_bAmbient = enable; }
+void Material::setDiffuseEnabled(bool enable) { m_bDiffuse = enable; }
+void Material::setSpecularEnabled(bool enable) { m_bSpecular = enable; }
 
-void Material::setNormal(MaterialTexture _normalTexture){
-    m_normal_texture = _normalTexture;
+void Material::setNormal(MaterialTexture normalTexture){
+    m_normal_texture = normalTexture;
     if (m_normal_texture.mapping == MappingType::spheremap){
         m_normal_texture.mapping = MappingType::planar;
     }
@@ -150,20 +150,20 @@ std::string Material::getClassBlock() {
     return stringFromFile("shaders/material.glsl", PathType::internal) + "\n";
 }
 
-std::unique_ptr<MaterialUniforms> Material::injectOnProgram(ShaderProgram& _shader ) {
-    _shader.addSourceBlock("defines", getDefinesBlock(), false);
-    _shader.addSourceBlock("material", getClassBlock(), false);
-    _shader.addSourceBlock("setup", "material = u_material;", false);
+std::unique_ptr<MaterialUniforms> Material::injectOnProgram(ShaderProgram& shader ) {
+    shader.addSourceBlock("defines", getDefinesBlock(), false);
+    shader.addSourceBlock("material", getClassBlock(), false);
+    shader.addSourceBlock("setup", "material = u_material;", false);
 
     if (m_bEmission || m_bAmbient || m_bDiffuse || m_bSpecular || m_normal_texture.tex) {
-        return std::make_unique<MaterialUniforms>(_shader);
+        return std::make_unique<MaterialUniforms>(shader);
     }
     return nullptr;
 }
 
-void Material::setupProgram(MaterialUniforms& _uniforms) {
+void Material::setupProgram(MaterialUniforms& uniforms) {
 
-    auto& u = _uniforms;
+    auto& u = uniforms;
 
     if (m_bEmission) {
         u.shader.setUniformf(u.emission, m_emission);

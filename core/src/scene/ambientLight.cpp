@@ -8,8 +8,8 @@ namespace Tangram {
 std::string AmbientLight::s_classBlock;
 std::string AmbientLight::s_typeName = "AmbientLight";
 
-AmbientLight::AmbientLight(const std::string& _name, bool _dynamic) :
-    Light(_name, _dynamic) {
+AmbientLight::AmbientLight(const std::string& name, bool dynamic) :
+    Light(name, dynamic) {
 
     m_type = LightType::ambient;
 
@@ -17,16 +17,16 @@ AmbientLight::AmbientLight(const std::string& _name, bool _dynamic) :
 
 AmbientLight::~AmbientLight() {}
 
-std::unique_ptr<LightUniforms> AmbientLight::injectOnProgram(ShaderProgram& _shader) {
-    injectSourceBlocks(_shader);
+std::unique_ptr<LightUniforms> AmbientLight::injectOnProgram(ShaderProgram& shader) {
+    injectSourceBlocks(shader);
 
     if (!m_dynamic) { return nullptr; }
 
-    return std::make_unique<LightUniforms>(_shader, getUniformName());
+    return std::make_unique<LightUniforms>(shader, getUniformName());
 }
 
-void AmbientLight::setupProgram(const View& _view, LightUniforms& _uniforms) {
-    Light::setupProgram(_view, _uniforms);
+void AmbientLight::setupProgram(const View& view, LightUniforms& uniforms) {
+    Light::setupProgram(view, uniforms);
 }
 
 std::string AmbientLight::getClassBlock() {

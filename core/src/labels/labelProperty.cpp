@@ -16,8 +16,8 @@ const std::map<std::string, Anchor> s_AnchorMap = {
     {"bottom-right", Anchor::bottom_right},
 };
 
-bool anchor(const std::string& _anchor, Anchor& _out) {
-    return tryFind(s_AnchorMap, _anchor, _out);
+bool anchor(const std::string& anchor, Anchor& out) {
+    return tryFind(s_AnchorMap, anchor, out);
 }
 
 } // LabelProperty
@@ -37,12 +37,12 @@ const std::map<std::string, Align> s_AlignMap = {
     {"center", Align::center},
 };
 
-bool transform(const std::string& _transform, Transform& _out) {
-    return tryFind(s_TransformMap, _transform, _out);
+bool transform(const std::string& transform, Transform& out) {
+    return tryFind(s_TransformMap, transform, out);
 }
 
-bool align(const std::string& _align, Align& _out) {
-    return tryFind(s_AlignMap, _align, _out);
+bool align(const std::string& align, Align& out) {
+    return tryFind(s_AlignMap, align, out);
 }
 
 } // TextLabelProperty

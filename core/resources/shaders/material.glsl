@@ -85,69 +85,69 @@ vec4 light_accumulator_diffuse = vec4(0.0);
 
 
 #ifdef TANGRAM_MATERIAL_TEXTURE_SPHEREMAP
-vec4 getSphereMap (in sampler2D _tex, in vec3 _eyeToPoint, in vec3 _normal, in vec2 _skew) {
-    vec3 eye = normalize(_eyeToPoint);
-    eye.xy -= _skew;
+vec4 getSphereMap (in sampler2D tex, in vec3 eyeToPoint, in vec3 normal, in vec2 skew) {
+    vec3 eye = normalize(eyeToPoint);
+    eye.xy -= skew;
     eye = normalize(eye);
-    vec3 r = reflect(eye, _normal);
+    vec3 r = reflect(eye, normal);
 
     r.z += 1.0;
     float m = 2. * length(r);
     vec2 uv = r.xy / m + .5;
-    return texture2D(_tex, uv);
+    return texture2D(tex, uv);
 }
 #endif
 
 
 #ifdef TANGRAM_MATERIAL_TEXTURE_TRIPLANAR
-vec3 getTriPlanarBlend (in vec3 _normal) {
-    vec3 blending = abs(_normal);
+vec3 getTriPlanarBlend (in vec3 normal) {
+    vec3 blending = abs(normal);
     blending = normalize(max(blending, 0.00001));
     float b = (blending.x + blending.y + blending.z);
     return blending / b;
 }
 
-vec4 getTriPlanar (in sampler2D _tex, in vec3 _pos, in vec3 _normal, in vec3 _scale) {
-    vec3 blending = getTriPlanarBlend(_normal);
-    vec4 xaxis = texture2D(_tex, fract(_pos.yz * _scale.x));
-    vec4 yaxis = texture2D(_tex, fract(_pos.xz * _scale.y));
-    vec4 zaxis = texture2D(_tex, fract(_pos.xy * _scale.z));
+vec4 getTriPlanar (in sampler2D tex, in vec3 pos, in vec3 normal, in vec3 scale) {
+    vec3 blending = getTriPlanarBlend(normal);
+    vec4 xaxis = texture2D(tex, fract(pos.yz * scale.x));
+    vec4 yaxis = texture2D(tex, fract(pos.xz * scale.y));
+    vec4 zaxis = texture2D(tex, fract(pos.xy * scale.z));
     return  xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 }
 #endif
 
 
 #ifdef TANGRAM_MATERIAL_TEXTURE_PLANAR
-vec4 getPlanar (in sampler2D _tex, in vec3 _pos, in vec2 _scale) {
-    return texture2D( _tex, fract(_pos.xy * _scale.x) );
+vec4 getPlanar (in sampler2D tex, in vec3 pos, in vec2 scale) {
+    return texture2D( tex, fract(pos.xy * scale.x) );
 }
 #endif
 
 
 #ifdef TANGRAM_MATERIAL_NORMAL_TEXTURE
-void calculateNormal (inout vec3 _normal) {
+void calculateNormal (inout vec3 normal) {
     // Get NORMALMAP
     //------------------------------------------------
     #ifdef TANGRAM_MATERIAL_NORMAL_TEXTURE_UV
-    _normal += texture2D(u_material_normal_texture, fract(v_texcoord*material.normalScale.xy)).rgb*2.0-1.0;
+    normal += texture2D(u_material_normal_texture, fract(v_texcoord*material.normalScale.xy)).rgb*2.0-1.0;
     #endif
 
     #ifdef TANGRAM_MATERIAL_NORMAL_TEXTURE_PLANAR
     vec3 normalTex = getPlanar(u_material_normal_texture, v_world_position.xyz, material.normalScale.xy).rgb*2.0-1.0;
-    _normal += normalTex;
+    normal += normalTex;
     #endif
 
     #ifdef TANGRAM_MATERIAL_NORMAL_TEXTURE_TRIPLANAR
-    vec3 normalTex = getTriPlanar(u_material_normal_texture, v_world_position.xyz, _normal, material.normalScale).rgb*2.0-1.0;
-    _normal += normalTex;
+    vec3 normalTex = getTriPlanar(u_material_normal_texture, v_world_position.xyz, normal, material.normalScale).rgb*2.0-1.0;
+    normal += normalTex;
     #endif
 
-    _normal = normalize(_normal);
+    normal = normalize(normal);
 }
 #endif
 
 #if (defined(TANGRAM_VERTEX_SHADER) && defined(TANGRAM_LIGHTING_VERTEX)) || (defined(TANGRAM_FRAGMENT_SHADER) && defined(TANGRAM_LIGHTING_FRAGMENT))
-void calculateMaterial (in vec3 _eyeToPoint, inout vec3 _normal) {
+void calculateMaterial (in vec3 eyeToPoint, inout vec3 normal) {
     // get EMISSION TEXTUREMAP
     //------------------------------------------------
     #ifdef TANGRAM_MATERIAL_EMISSION_TEXTURE
@@ -160,11 +160,11 @@ void calculateMaterial (in vec3 _eyeToPoint, inout vec3 _normal) {
         #endif
 
         #ifdef TANGRAM_MATERIAL_EMISSION_TEXTURE_TRIPLANAR
-        material.emission *= getTriPlanar(u_material_emission_texture, v_world_position.xyz, _normal, material.emissionScale);
+        material.emission *= getTriPlanar(u_material_emission_texture, v_world_position.xyz, normal, material.emissionScale);
         #endif
 
         #ifdef TANGRAM_MATERIAL_EMISSION_TEXTURE_SPHEREMAP
-        material.emission *= getSphereMap(u_material_emission_texture, _eyeToPoint, _normal, TANGRAM_SKEW);
+        material.emission *= getSphereMap(u_material_emission_texture, eyeToPoint, normal, TANGRAM_SKEW);
         #endif
     #endif
 
@@ -180,11 +180,11 @@ void calculateMaterial (in vec3 _eyeToPoint, inout vec3 _normal) {
         #endif
 
         #ifdef TANGRAM_MATERIAL_AMBIENT_TEXTURE_TRIPLANAR
-        material.ambient *= getTriPlanar(u_material_ambient_texture, v_world_position.xyz, _normal, material.ambientScale);
+        material.ambient *= getTriPlanar(u_material_ambient_texture, v_world_position.xyz, normal, material.ambientScale);
         #endif
 
         #ifdef TANGRAM_MATERIAL_AMBIENT_TEXTURE_SPHEREMAP
-        material.ambient *= getSphereMap(u_material_ambient_texture, _eyeToPoint, _normal, TANGRAM_SKEW);
+        material.ambient *= getSphereMap(u_material_ambient_texture, eyeToPoint, normal, TANGRAM_SKEW);
         #endif
     #endif
 
@@ -200,11 +200,11 @@ void calculateMaterial (in vec3 _eyeToPoint, inout vec3 _normal) {
         #endif
 
         #ifdef TANGRAM_MATERIAL_DIFFUSE_TEXTURE_TRIPLANAR
-        material.diffuse *= getTriPlanar(u_material_diffuse_texture, v_world_position.xyz, _normal, material.diffuseScale);
+        material.diffuse *= getTriPlanar(u_material_diffuse_texture, v_world_position.xyz, normal, material.diffuseScale);
         #endif
 
         #ifdef TANGRAM_MATERIAL_DIFFUSE_TEXTURE_SPHEREMAP
-        material.diffuse *= getSphereMap(u_material_diffuse_texture, _eyeToPoint, _normal, TANGRAM_SKEW);
+        material.diffuse *= getSphereMap(u_material_diffuse_texture, eyeToPoint, normal, TANGRAM_SKEW);
         #endif
     #endif
 
@@ -220,11 +220,11 @@ void calculateMaterial (in vec3 _eyeToPoint, inout vec3 _normal) {
         #endif
 
         #ifdef TANGRAM_MATERIAL_SPECULAR_TEXTURE_TRIPLANAR
-        material.specular *= getTriPlanar(u_material_specular_texture, v_world_position.xyz, _normal, material.specularScale);
+        material.specular *= getTriPlanar(u_material_specular_texture, v_world_position.xyz, normal, material.specularScale);
         #endif
 
         #ifdef TANGRAM_MATERIAL_SPECULAR_TEXTURE_SPHEREMAP
-        material.specular *= getSphereMap(u_material_specular_texture, _eyeToPoint, _normal, TANGRAM_SKEW);
+        material.specular *= getSphereMap(u_material_specular_texture, eyeToPoint, normal, TANGRAM_SKEW);
         #endif
     #endif
 }

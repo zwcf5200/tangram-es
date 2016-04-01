@@ -30,7 +30,7 @@ using UniformValue = variant<none_type, bool, std::string, float, int, glm::vec2
 class UniformLocation {
 
 public:
-    UniformLocation(const std::string& _name) : name(_name) {}
+    UniformLocation(const std::string& name) : name(name) {}
 
 private:
     const std::string name;

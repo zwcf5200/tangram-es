@@ -5,15 +5,15 @@
 namespace Tangram {
 
 struct PropertyItem {
-    PropertyItem(std::string _key, Value _value) :
-        key(std::move(_key)), value(std::move(_value)) {}
+    PropertyItem(std::string key, Value value) :
+        key(std::move(key)), value(std::move(value)) {}
 
     std::string key;
     Value value;
-    bool operator<(const PropertyItem& _rhs) const {
-        return key.size() == _rhs.key.size()
-            ? key < _rhs.key
-            : key.size() < _rhs.key.size();
+    bool operator<(const PropertyItem& rhs) const {
+        return key.size() == rhs.key.size()
+            ? key < rhs.key
+            : key.size() < rhs.key.size();
     }
 };
 

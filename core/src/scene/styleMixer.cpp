@@ -8,17 +8,17 @@
 
 namespace Tangram {
 
-std::vector<std::string> StyleMixer::getStylesToMix(const Node& _style) {
+std::vector<std::string> StyleMixer::getStylesToMix(const Node& style) {
 
     std::vector<std::string> names;
 
     // 'base' style is the first item to mix.
-    if (const Node& base = _style["base"]) {
+    if (const Node& base = style["base"]) {
         if (base.IsScalar()) { names.push_back(base.Scalar()); }
     }
 
     // 'mix' styles are mixed next, in order of declaration.
-    if (const Node& mix = _style["mix"]) {
+    if (const Node& mix = style["mix"]) {
         if (mix.IsScalar()) {
             names.push_back(mix.Scalar());
         } else if (mix.IsSequence()) {
@@ -31,10 +31,10 @@ std::vector<std::string> StyleMixer::getStylesToMix(const Node& _style) {
     return names;
 }
 
-std::vector<std::string> StyleMixer::getMixingOrder(const Node& _styles) {
+std::vector<std::string> StyleMixer::getMixingOrder(const Node& styles) {
 
     // Input must be a map of names to style configuration nodes.
-    if (!_styles.IsMap()) {
+    if (!styles.IsMap()) {
         return {};
     }
 
@@ -42,7 +42,7 @@ std::vector<std::string> StyleMixer::getMixingOrder(const Node& _styles) {
     // If style 'a' mixes style 'b', the dependency would be {'b', 'a'}.
     std::vector<std::pair<std::string, std::string>> dependencies;
 
-    for (const auto& entry : _styles) {
+    for (const auto& entry : styles) {
         const auto& name = entry.first;
         const auto& config = entry.second;
         for (const auto& mix : getStylesToMix(config)) {
@@ -53,14 +53,14 @@ std::vector<std::string> StyleMixer::getMixingOrder(const Node& _styles) {
     return topologicalSort(dependencies);
 }
 
-void StyleMixer::mixStyleNodes(Node _styles) {
+void StyleMixer::mixStyleNodes(Node styles) {
 
     // First determine the order of nodes to evaluate.
-    auto styleNamesSorted = getMixingOrder(_styles);
+    auto styleNamesSorted = getMixingOrder(styles);
 
     for (const auto& name : styleNamesSorted) {
 
-        const auto& style = _styles[name];
+        const auto& style = styles[name];
 
         if (!style || !style.IsMap()) {
             // Something's wrong here, try the next one!
@@ -79,57 +79,57 @@ void StyleMixer::mixStyleNodes(Node _styles) {
                 continue;
             }
 
-            mixins.push_back(_styles[styleNameToMix]);
+            mixins.push_back(styles[styleNameToMix]);
         }
 
         applyStyleMixins(style, mixins);
     }
 }
 
-void StyleMixer::applyStyleMixins(Node _style, const std::vector<Node>& _mixins) {
+void StyleMixer::applyStyleMixins(Node style, const std::vector<Node>& mixins) {
 
     // Merge boolean flags as a disjunction.
-    mergeBooleanFieldAsDisjunction("animated", _style, _mixins);
-    mergeBooleanFieldAsDisjunction("texcoords", _style, _mixins);
+    mergeBooleanFieldAsDisjunction("animated", style, mixins);
+    mergeBooleanFieldAsDisjunction("texcoords", style, mixins);
 
     // Merge scalar fields with newer values taking precedence.
-    mergeFieldTakingLast("base", _style, _mixins);
-    mergeFieldTakingLast("lighting", _style, _mixins);
-    mergeFieldTakingLast("texture", _style, _mixins);
-    mergeFieldTakingLast("blend", _style, _mixins);
-    mergeFieldTakingLast("blend_order", _style, _mixins);
+    mergeFieldTakingLast("base", style, mixins);
+    mergeFieldTakingLast("lighting", style, mixins);
+    mergeFieldTakingLast("texture", style, mixins);
+    mergeFieldTakingLast("blend", style, mixins);
+    mergeFieldTakingLast("blend_order", style, mixins);
 
     // Merge map fields with newer values taking precedence.
-    mergeMapFieldTakingLast("material", _style, _mixins);
+    mergeMapFieldTakingLast("material", style, mixins);
 
     // Produce a list of all 'mixins' with shader nodes and merge those separately.
     std::vector<Node> shaderMixins;
-    for (const auto& mixin : _mixins) {
+    for (const auto& mixin : mixins) {
         if (const auto& shaders = mixin["shaders"]) {
             shaderMixins.push_back(shaders);
         }
     }
-    applyShaderMixins(_style["shaders"], shaderMixins);
+    applyShaderMixins(style["shaders"], shaderMixins);
 }
 
-void StyleMixer::applyShaderMixins(Node _shaders, const std::vector<Node>& _mixins) {
+void StyleMixer::applyShaderMixins(Node shaders, const std::vector<Node>& mixins) {
 
     // Merge maps fields with newer values taking precedence.
-    mergeMapFieldTakingLast("defines", _shaders, _mixins);
-    mergeMapFieldTakingLast("uniforms", _shaders, _mixins);
+    mergeMapFieldTakingLast("defines", shaders, mixins);
+    mergeMapFieldTakingLast("uniforms", shaders, mixins);
 
     // Merge "extensions" as a non-repeating set.
     {
         std::set<std::string> set;
-        Node output = _shaders["extensions_mixed"];
+        Node output = shaders["extensions_mixed"];
         output = Node(); // Clear this node in case something was already there.
-        for (const auto& mixin : _mixins) {
+        for (const auto& mixin : mixins) {
             Node extensions = mixin["extensions_mixed"];
             for (const auto& e : extensions) {
                 set.insert(e.Scalar());
             }
         }
-        Node extensions = _shaders["extensions"];
+        Node extensions = shaders["extensions"];
         if (extensions.IsScalar()) {
             set.insert(extensions.Scalar());
         } else if (extensions.IsSequence()) {
@@ -144,9 +144,9 @@ void StyleMixer::applyShaderMixins(Node _shaders, const std::vector<Node>& _mixi
 
     // Merge "blocks" into a list of strings for each key.
     {
-        Node output = _shaders["blocks_mixed"];
+        Node output = shaders["blocks_mixed"];
         output = Node(); // Clear this node in case something was already there.
-        for (const auto& mixin : _mixins) {
+        for (const auto& mixin : mixins) {
             Node blocks = mixin["blocks_mixed"];
             for (const auto& entry : blocks) {
                 Node list = output[entry.first.Scalar()];
@@ -159,7 +159,7 @@ void StyleMixer::applyShaderMixins(Node _shaders, const std::vector<Node>& _mixi
                 }
             }
         }
-        for (const auto& entry : _shaders["blocks"]) {
+        for (const auto& entry : shaders["blocks"]) {
             output[entry.first.Scalar()].push_back(entry.second.Scalar());
         }
     }
