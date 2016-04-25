@@ -1,7 +1,9 @@
 package com.mapzen.tangram.android;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Window;
 import android.widget.Toast;
@@ -10,6 +12,7 @@ import com.mapzen.tangram.HttpHandler;
 import com.mapzen.tangram.LngLat;
 import com.mapzen.tangram.MapController;
 import com.mapzen.tangram.MapController.FeaturePickListener;
+import com.mapzen.tangram.MapController.FrameCaptureCallback;
 import com.mapzen.tangram.MapController.ViewCompleteListener;
 import com.mapzen.tangram.MapData;
 import com.mapzen.tangram.MapView;
@@ -19,8 +22,14 @@ import com.mapzen.tangram.TouchInput.LongPressResponder;
 import com.mapzen.tangram.TouchInput.TapResponder;
 import com.squareup.okhttp.Callback;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,9 +174,20 @@ public class MainActivity extends Activity implements OnMapReadyCallback, TapRes
 
     @Override
     public void onLongPress(float x, float y) {
-        markers.clear();
-        showTileInfo = !showTileInfo;
-        map.setDebugFlag(MapController.DebugFlag.TILE_INFOS, showTileInfo);
+        // markers.clear();
+        // showTileInfo = !showTileInfo;
+        // map.setDebugFlag(MapController.DebugFlag.TILE_INFOS, showTileInfo);
+
+        Toast.makeText(getApplicationContext(), "Take Screenshot",
+                       Toast.LENGTH_SHORT).show();
+
+        map.captureFrame(new FrameCaptureCallback() {
+                public void onCaptured(final Bitmap bitmap) {
+                    runOnUiThread(new Runnable() {
+                            public void run() { saveScreenshot(bitmap); }
+                        });
+                }
+            }, true);
     }
 
     @Override
@@ -180,5 +200,41 @@ public class MainActivity extends Activity implements OnMapReadyCallback, TapRes
                 "Selected: " + name + " at: " + positionX + ", " + positionY,
                 Toast.LENGTH_SHORT).show();
     }
-}
 
+    private void saveScreenshot(Bitmap bitmap) {
+
+
+        final Calendar c = Calendar.getInstance();
+        String fileName = "img" + String.valueOf(c.getTimeInMillis()) + ".png";
+
+        File dirName = new File(Environment.getExternalStorageDirectory() +
+                                File.separator + "Pictures"+
+                                File.separator + "Screenshots");
+        dirName.mkdirs();
+
+        FileOutputStream fos = null;
+        try {
+            File tmpFile = new File(dirName, fileName);
+            fos = new FileOutputStream(tmpFile);
+
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            Toast.makeText(getApplicationContext(),
+                           "Took Screenshot " + tmpFile,
+                           Toast.LENGTH_SHORT).show();
+            return;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),
+                           "Took Screenshot: " + e,
+                           Toast.LENGTH_SHORT).show();
+        } finally {
+            if (fos != null) {
+                try { fos.close(); }
+                catch (IOException e) {}
+            }
+        }
+
+    }
+
+}
