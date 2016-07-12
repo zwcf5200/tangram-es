@@ -99,7 +99,7 @@ foreach(_shader ${SHADER_FILES})
             OUTPUT ${SHADER_OUTPUT}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..
             MAIN_DEPENDENCY ${_shader}
-            COMMAND ${PROJECT_SOURCE_DIR}/../scripts/incbin.sh
+            COMMAND sh ${PROJECT_SOURCE_DIR}/../scripts/incbin.bat
                 ${_shader}
                 core/include/shaders/${_shader_name}.h
                 ${_shader_name})
