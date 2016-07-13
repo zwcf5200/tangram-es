@@ -23,7 +23,7 @@ typedef ptrdiff_t GLintptr;
 #define glBindVertexArray glBindVertexArrayAPPLE
 #endif
 
-#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_RPI)
+#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_RPI) || defined(PLATFORM_WINDOWS)
 #define glMapBuffer glMapBufferOES
 #define glUnmapBuffer glUnmapBufferOES
 #endif

@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    struct stat sb;
+    struct stat sb {0};
     //if (stat(sceneFile.c_str(), &sb) == -1) {
     //logMsg("scene file not found!");
     //exit(EXIT_FAILURE);

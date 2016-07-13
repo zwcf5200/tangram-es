@@ -23,8 +23,6 @@ if(APPLICATION)
 
   set(EXECUTABLE_NAME "tangram")
 
-  find_package(OpenGL REQUIRED)
-
   # add sources and include headers
   find_sources_and_include_directories(
     ${PROJECT_SOURCE_DIR}/windows/src/*.h
@@ -34,9 +32,9 @@ if(APPLICATION)
 
   target_link_libraries(${EXECUTABLE_NAME}
     ${CORE_LIBRARY}
-    -lcurl glfw
-    ${GLFW_LIBRARIES}
-    ${OPENGL_LIBRARIES})
+    libcurl
+    glfw
+    ${GLFW_LIBRARIES})
 
   add_resources(${EXECUTABLE_NAME} "${PROJECT_SOURCE_DIR}/scenes")
 

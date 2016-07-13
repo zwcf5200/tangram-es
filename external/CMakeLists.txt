@@ -34,6 +34,17 @@ target_include_directories(css-color-parser-cpp
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/css-color-parser-cpp)
 
+## curl ##
+##########################
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(BUILD_CURL_TESTS OFF CACHE BOOL "Disable curl tests")
+  add_subdirectory(curl)
+  target_include_directories(libcurl
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/curl/include
+    ${CURL_BINARY_DIR}/include/curl
+  )
+endif()
 
 ## geojsonvt ##
 ###############
@@ -99,6 +110,9 @@ if(PLATFORM_LINUX OR PLATFORM_OSX OR PLATFORM_WINDOWS)
   set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
   set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation")
   set(GLFW_INSTALL OFF CACHE BOOL "Generate installation target")
+  if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(GLFW_USE_EGL ON CACHE BOOL "Generate installation target")
+  endif()
 
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw)
 
@@ -106,14 +120,22 @@ if(PLATFORM_LINUX OR PLATFORM_OSX OR PLATFORM_WINDOWS)
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 
-  target_link_libraries(glfw
-    INTERFACE
-    "${GLFW_LIBRARIES}"
-    -ldl)
-
-  target_compile_options(glfw
-    PRIVATE
-    -O3 -DNDEBUG)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_link_libraries(glfw
+      INTERFACE
+      "${GLFW_LIBRARIES}")
+    target_compile_options(glfw
+      PRIVATE
+      -DNDEBUG)
+  else()
+    target_link_libraries(glfw
+      INTERFACE
+      "${GLFW_LIBRARIES}"
+      -ldl)
+    target_compile_options(glfw
+      PRIVATE
+      -O3 -DNDEBUG)
+  endif()
 
   if(USE_EXTERNAL_LIBS)
     export(TARGETS glfw
