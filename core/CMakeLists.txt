@@ -81,6 +81,11 @@ target_compile_definitions(${CORE_LIBRARY}
 
 # make groups for xcode
 group_recursive_sources(src "src")
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(CMD_SCRIPT ${PROJECT_SOURCE_DIR}/../scripts/incbin.bat)
+else()
+  set(CMD_SCRIPT "sh" ${PROJECT_SOURCE_DIR}/../scripts/incbin.bat)
+endif()
 
 # add compile shader targets
 file(GLOB_RECURSE SHADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*")
@@ -99,7 +104,7 @@ foreach(_shader ${SHADER_FILES})
             OUTPUT ${SHADER_OUTPUT}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..
             MAIN_DEPENDENCY ${_shader}
-            COMMAND sh ${PROJECT_SOURCE_DIR}/../scripts/incbin.bat
+            COMMAND ${CMD_SCRIPT}
                 ${_shader}
                 core/include/shaders/${_shader_name}.h
                 ${_shader_name})

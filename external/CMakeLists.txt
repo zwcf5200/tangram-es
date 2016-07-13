@@ -52,9 +52,15 @@ target_include_directories(geojson-vt-cpp
 set_target_properties(geojson-vt-cpp
   PROPERTIES COMPILE_FLAGS -DGEOJSONVT_CUSTOM_TAGS)
 
-target_compile_options(geojson-vt-cpp
-  PUBLIC
-  -Wno-unknown-pragmas)
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(geojson-vt-cpp
+      PUBLIC
+      -D_USE_MATH_DEFINES)
+else()
+    target_compile_options(geojson-vt-cpp
+      PUBLIC
+      -Wno-unknown-pragmas)
+endif()
 
 
 ## duktape ##
@@ -87,7 +93,7 @@ endif()
 
 ## GLFW ##
 ##########
-if(PLATFORM_LINUX OR PLATFORM_OSX)
+if(PLATFORM_LINUX OR PLATFORM_OSX OR PLATFORM_WINDOWS)
   # configure GLFW to build only the library
   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
   set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")

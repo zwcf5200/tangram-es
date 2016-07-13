@@ -64,12 +64,12 @@ namespace RenderState {
         VertexLayout::clearCache();
 
         blending.init(GL_FALSE);
-        blendingFunc.init(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        blendingFunc.init(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, true);
         culling.init(GL_TRUE);
-        cullFace.init(GL_BACK);
-        frontFace.init(GL_CCW);
+        cullFace.init(GL_BACK, true);
+        frontFace.init(GL_CCW, true);
         depthTest.init(GL_TRUE);
-        depthWrite.init(GL_TRUE);
+        depthWrite.init(GL_TRUE, true);
 
         GL_CHECK(glDisable(GL_STENCIL_TEST));
         GL_CHECK(glDepthFunc(GL_LESS));
@@ -77,7 +77,7 @@ namespace RenderState {
         GL_CHECK(glDepthRangef(0.0, 1.0));
 
 
-        clearColor.init(0.0, 0.0, 0.0, 0.0);
+        clearColor.init(0.0, 0.0, 0.0, 0.0, true);
         shaderProgram.init(max, false);
         vertexBuffer.init(max, false);
         indexBuffer.init(max, false);

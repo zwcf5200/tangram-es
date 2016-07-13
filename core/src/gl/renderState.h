@@ -77,7 +77,7 @@ namespace RenderState {
         using Type = std::tuple<Args...>;
         Type params;
 
-        void init(Args... _param, bool _force = true) {
+        void init(Args... _param, bool _force) {
             params = std::make_tuple(_param...);
             if (_force) {
                 call(typename gens<sizeof...(Args)>::type());

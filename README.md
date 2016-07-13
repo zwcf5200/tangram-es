@@ -30,6 +30,21 @@ Currently we are targeting five platforms: OS X, Ubuntu Linux, iOS, Android, and
 
 ## platforms ##
 
+### Windows (command line) ###
+To build a runnable Windows application bundle, run:
+
+```cmd
+mkdir -p build\windows
+cd build\windows
+cmake -G "Visual Studio 14 2015 Win64" ..\.. -DPLATFORM_TARGET=windows
+```
+And open the application with:
+
+```bash
+open build/osx/bin/tangram.app
+```
+
+
 ### OS X (command line) ###
 To build a runnable OS X application bundle, run:
 
