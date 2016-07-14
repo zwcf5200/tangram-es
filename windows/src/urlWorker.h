@@ -7,7 +7,7 @@
 
 #include "platform.h"
 
-typedef void CURL;
+typedef struct Curl_easy CURL;
 
 struct UrlTask {
     UrlCallback callback;

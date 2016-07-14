@@ -42,7 +42,7 @@ endif()
 ## curl ##
 ##########################
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set(BUILD_CURL_TESTS OFF CACHE BOOL "Disable curl tests")
+  set(BUILD_TESTING OFF CACHE BOOL "Disable curl tests")
   set(ZLIB_FOUND ON)
   set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
   set(ZLIB_LIBRARIES zlibstatic)
