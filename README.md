@@ -31,10 +31,12 @@ Currently we are targeting five platforms: OS X, Ubuntu Linux, iOS, Android, and
 ## platforms ##
 
 ### Windows (command line) ###
+Downloading angle https://www.dropbox.com/s/vollhh52bjemeym/angle.7z?dl=0 and extract to `build` directory
+ (Use extract to the currect directoy command)
 To build a runnable Windows application bundle, run:
 
 ```cmd
-mkdir -p build\windows
+mkdir build\windows
 cd build\windows
 cmake -G "Visual Studio 14 2015 Win64" ..\.. -DPLATFORM_TARGET=windows
 ```

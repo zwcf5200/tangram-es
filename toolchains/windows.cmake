@@ -27,6 +27,13 @@ if(APPLICATION)
   find_sources_and_include_directories(
     ${PROJECT_SOURCE_DIR}/windows/src/*.h
     ${PROJECT_SOURCE_DIR}/windows/src/*.cpp)
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8)
+    file(COPY ${CMAKE_SOURCE_DIR}/build/angle/Release_x64/libEGL.dll DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_SOURCE_DIR}/build/angle/Release_x64/libGLESv2.dll DESTINATION ${CMAKE_BINARY_DIR}/bin)
+  else()
+    file(COPY ${CMAKE_SOURCE_DIR}/build/angle/Release_Win32/libEGL.dll DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_SOURCE_DIR}/build/angle/Release_Win32/libGLESv2.dll DESTINATION ${CMAKE_BINARY_DIR}/bin)
+  endif()
 
   add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
