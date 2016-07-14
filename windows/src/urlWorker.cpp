@@ -29,6 +29,10 @@ void UrlWorker::perform(std::unique_ptr<UrlTask> _task) {
     m_task = std::move(_task);
 
     m_future = std::async(std::launch::async, [&]() {
+        std::stringstream m_stream;
+
+        // Reset stream
+        m_stream.seekp(0, std::ios::end);
 
         // set up curl to perform fetch
         curl_easy_setopt(m_curlHandle, CURLOPT_WRITEFUNCTION, write_data);
@@ -36,12 +40,8 @@ void UrlWorker::perform(std::unique_ptr<UrlTask> _task) {
         curl_easy_setopt(m_curlHandle, CURLOPT_URL, m_task->url.c_str());
         curl_easy_setopt(m_curlHandle, CURLOPT_HEADER, 0L);
         curl_easy_setopt(m_curlHandle, CURLOPT_VERBOSE, 0L);
-        curl_easy_setopt(m_curlHandle, CURLOPT_ACCEPT_ENCODING, "gzip");
 
         LOGD("Fetching URL: %s", m_task->url.c_str());
-
-        // Reset stream
-        m_stream.seekp(0);
 
         CURLcode result = curl_easy_perform(m_curlHandle);
 
@@ -50,9 +50,8 @@ void UrlWorker::perform(std::unique_ptr<UrlTask> _task) {
 
         if (result == CURLE_OK && httpStatusCode == 200) {
             size_t nBytes = m_stream.tellp();
-            m_stream.seekp(0);
-
             m_task->content.resize(nBytes);
+            m_stream.seekp(0);
             m_stream.seekg(0);
             m_stream.read(m_task->content.data(), nBytes);
         }

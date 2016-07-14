@@ -39,7 +39,6 @@ class UrlWorker {
 
     private:
         std::unique_ptr<UrlTask> m_task;
-        std::stringstream m_stream;
         CURL* m_curlHandle = nullptr;
 
         std::future<bool> m_future;

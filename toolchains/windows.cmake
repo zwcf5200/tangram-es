@@ -34,6 +34,7 @@ if(APPLICATION)
     ${CORE_LIBRARY}
     libcurl
     glfw
+    ${CMAKE_SOURCE_DIR}/build/angle/Release_x64/libGLESv2.lib
     ${GLFW_LIBRARIES})
 
   add_resources(${EXECUTABLE_NAME} "${PROJECT_SOURCE_DIR}/scenes")

@@ -208,13 +208,14 @@ auto Stops::evalWidth(float _key) const -> float {
     if (frames.empty()) { return 0; }
 
     auto upper = nearestHigherFrame(_key);
+    if (upper == frames.begin()) {
+        return upper->value.get<float>();
+    }
+
     auto lower = upper - 1;
 
     if (upper == frames.end())  {
         return lower->value.get<float>();
-    }
-    if (lower < frames.begin()) {
-        return upper->value.get<float>();
     }
 
     if (upper->key <= _key) {
