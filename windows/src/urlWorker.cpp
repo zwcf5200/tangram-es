@@ -40,6 +40,7 @@ void UrlWorker::perform(std::unique_ptr<UrlTask> _task) {
         curl_easy_setopt(m_curlHandle, CURLOPT_URL, m_task->url.c_str());
         curl_easy_setopt(m_curlHandle, CURLOPT_HEADER, 0L);
         curl_easy_setopt(m_curlHandle, CURLOPT_VERBOSE, 0L);
+        curl_easy_setopt(m_curlHandle, CURLOPT_ACCEPT_ENCODING, "gzip");
 
         LOGD("Fetching URL: %s", m_task->url.c_str());
 
