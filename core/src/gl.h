@@ -28,7 +28,7 @@ typedef ptrdiff_t GLintptr;
 #define glUnmapBuffer glUnmapBufferOES
 #endif
 
-#if defined(PLATFORM_IOS)
+#if defined(PLATFORM_IOS) || defined(PLATFORM_WINDOWS)
 #define glDeleteVertexArrays glDeleteVertexArraysOES
 #define glGenVertexArrays glGenVertexArraysOES
 #define glBindVertexArray glBindVertexArrayOES
