@@ -260,7 +260,9 @@ std::string ShaderProgram::applySourceBlocks(const std::string& source, bool fra
     auto sourcePos = source.begin();
     size_t lineStart = 0, lineEnd;
 
-    while ((lineEnd = source.find('\n', lineStart)) != std::string::npos) {
+    // Windows ends linestring from files with a "\r\n" by default. (check for this first)
+    while ( ((lineEnd = source.find("\r\n", lineStart)) != std::string::npos) ||
+            ((lineEnd = source.find('\n', lineStart)) != std::string::npos) ) {
 
         if (lineEnd - lineStart == 0) {
             // skip empty lines
