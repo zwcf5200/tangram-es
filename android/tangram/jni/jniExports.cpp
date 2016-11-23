@@ -211,21 +211,12 @@ extern "C" {
         onUrlFailure(jniEnv, callbackPtr);
     }
 
-    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativePickFeature(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jfloat posX, jfloat posY, jobject listener) {
+    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativePickFeature(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jobject query, jfloat posX, jfloat posY) {
         assert(mapPtr > 0);
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto object = jniEnv->NewGlobalRef(listener);
-        map->pickFeatureAt(posX, posY, [object](auto pickResult) {
-            featurePickCallback(object, pickResult);
-        });
-    }
-
-    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativePickLabel(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jfloat posX, jfloat posY, jobject listener) {
-        assert(mapPtr > 0);
-        auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto object = jniEnv->NewGlobalRef(listener);
-        map->pickLabelAt(posX, posY, [object](auto pickResult) {
-            labelPickCallback(object, pickResult);
+        query = jniEnv->NewGlobalRef(query);
+        map->pickFeatureAt(posX, posY, [query](auto feature, auto label) {
+            featurePickCallback(query, feature, label);
         });
     }
 

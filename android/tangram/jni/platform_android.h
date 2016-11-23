@@ -15,10 +15,8 @@ struct LabelPickResult;
 struct FeaturePickResult;
 }
 
-void featurePickCallback(jobject listener, const Tangram::FeaturePickResult* featurePickResult);
+void featurePickCallback(jobject query, const Tangram::FeaturePickResult* feature, const Tangram::LabelPickResult* label);
 
 std::string resolveScenePath(const char* path);
-
-void labelPickCallback(jobject listener, const Tangram::LabelPickResult* labelPickResult);
 
 std::string stringFromJString(JNIEnv* jniEnv, jstring string);

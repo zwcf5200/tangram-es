@@ -63,31 +63,6 @@ public class MapController implements Renderer {
         SELECTION_BUFFER,
     }
 
-    /**
-     * Interface for a callback to receive information about features picked from the map
-     */
-    public interface FeaturePickListener {
-        /**
-         * Receive information about features found in a call to {@link #pickFeature(float, float)}
-         * @param properties A mapping of string keys to string or number values
-         * @param positionX The horizontal screen coordinate of the tapped location
-         * @param positionY The vertical screen coordinate of the tapped location
-         */
-        void onFeaturePick(Map<String, String> properties, float positionX, float positionY);
-    }
-    /**
-     * Interface for a callback to receive information about labels picked from the map
-     */
-    public interface LabelPickListener {
-        /**
-         * Receive information about labels found in a call to {@link #pickLabels(float, float)}
-         * @param label The {@link LabelPickResult} that has been selected
-         * @param positionX The horizontal screen coordinate of the tapped location
-         * @param positionY The vertical screen coordinate of the tapped location
-         */
-        void onLabelPick(LabelPickResult labelPickResult, float positionX, float positionY);
-    }
-
     public interface ViewCompleteListener {
         /**
          * Called on the render-thread at the end of whenever the view is fully loaded and
@@ -643,44 +618,13 @@ public class MapController implements Renderer {
     }
 
     /**
-     * Set a listener for feature pick events
-     * @param listener Listener to call
-     */
-    public void setFeaturePickListener(FeaturePickListener listener) {
-        featurePickListener = listener;
-    }
-
-    /**
      * Query the map for geometry features at the given screen coordinates; results will be returned
-     * in a callback to the object set by {@link #setFeaturePickListener(FeaturePickListener)}
-     * @param posX The horizontal screen coordinate
-     * @param posY The vertical screen coordinate
+     * in a callback to the query object.
+     * @param query the query object
      */
-    public void pickFeature(float posX, float posY) {
-        if (featurePickListener != null) {
-            checkPointer(mapPointer);
-            nativePickFeature(mapPointer, posX, posY, featurePickListener);
-        }
-    }
-    /**
-     * Set a listener for label pick events
-     * @param listener Listener to call
-     */
-    public void setLabelPickListener(LabelPickListener listener) {
-        labelPickListener = listener;
-    }
-
-    /**
-     * Query the map for labeled features at the given screen coordinates; results will be returned
-     * in a callback to the object set by {@link #setLabelPickListener(LabelPickListener)}
-     * @param posX The horizontal screen coordinate
-     * @param posY The vertical screen coordinate
-     */
-    public void pickLabel(float posX, float posY) {
-        if (labelPickListener != null) {
-            checkPointer(mapPointer);
-            nativePickLabel(mapPointer, posX, posY, labelPickListener);
-        }
+    public void pickFeature(FeatureQuery query) {
+        checkPointer(mapPointer);
+        nativePickFeature(mapPointer, query, query.getX(), query.getY());
     }
 
     /**
@@ -892,8 +836,7 @@ public class MapController implements Renderer {
     private synchronized native void nativeHandleShoveGesture(long mapPtr, float distance);
     private synchronized native void nativeQueueSceneUpdate(long mapPtr, String componentPath, String value);
     private synchronized native void nativeApplySceneUpdates(long mapPtr);
-    private synchronized native void nativePickFeature(long mapPtr, float posX, float posY, FeaturePickListener listener);
-    private synchronized native void nativePickLabel(long mapPtr, float posX, float posY, LabelPickListener listener);
+    private synchronized native void nativePickFeature(long mapPtr, FeatureQuery query, float posX, float posY);
     private synchronized native long nativeMarkerAdd(long mapPtr);
     private synchronized native boolean nativeMarkerRemove(long mapPtr, long markerID);
     private synchronized native boolean nativeMarkerSetStyling(long mapPtr, long markerID, String styling);
@@ -932,8 +875,6 @@ public class MapController implements Renderer {
     private FontFileParser fontFileParser;
     private DisplayMetrics displayMetrics = new DisplayMetrics();
     private HttpHandler httpHandler;
-    private FeaturePickListener featurePickListener;
-    private LabelPickListener labelPickListener;
     private ViewCompleteListener viewCompleteListener;
     private FrameCaptureCallback frameCaptureCallback;
     private boolean frameCaptureAwaitCompleteView;

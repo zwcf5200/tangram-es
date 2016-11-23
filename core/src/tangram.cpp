@@ -48,11 +48,6 @@ public:
         FeaturePickCallback onFeatureSelection;
     };
 
-    struct LabelSelectionQuery {
-        glm::vec2 position;
-        LabelPickCallback onLabelSelection;
-    };
-
     void setScene(std::shared_ptr<Scene>& _scene);
 
     void setEase(EaseField _f, Ease _e);
@@ -92,7 +87,6 @@ public:
     bool cacheGlState;
 
     std::vector<FeatureSelectionQuery> featureSelectionQueries;
-    std::vector<LabelSelectionQuery> labelSelectionQueries;
 };
 
 void Map::Impl::setEase(EaseField _f, Ease _e) {
@@ -394,12 +388,6 @@ void Map::pickFeatureAt(float _x, float _y, FeaturePickCallback _onFeatureSelect
     requestRender();
 }
 
-void Map::pickLabelAt(float _x, float _y, LabelPickCallback _onTouchLabelSelectCallback) {
-    impl->labelSelectionQueries.push_back({{_x, _y}, _onTouchLabelSelectCallback});
-
-    requestRender();
-}
-
 void Map::render() {
 
     // Do not render if any texture resources are in process of being downloaded
@@ -423,7 +411,7 @@ void Map::render() {
     impl->renderState.jobQueue.runJobs();
 
     // Render feature selection pass to offscreen framebuffer
-    if (impl->featureSelectionQueries.size() > 0 || impl->labelSelectionQueries.size() > 0 || drawSelectionBuffer) {
+    if (!impl->featureSelectionQueries.empty() || drawSelectionBuffer) {
 
         impl->selectionBuffer->applyAsRenderTarget(impl->renderState);
 
@@ -437,59 +425,40 @@ void Map::render() {
             }
         }
 
-        // Resolve feature selection queries
-        for (const auto& selectionQuery : impl->featureSelectionQueries) {
-            std::unique_ptr<FeaturePickResult> queryResult;
+        // Resolve feature selection queries.
+        for (const auto& query : impl->featureSelectionQueries) {
+            std::unique_ptr<FeaturePickResult> featureResult;
+            std::unique_ptr<LabelPickResult> labelResult;
+            Label* label = nullptr;
+            Tile* tile = nullptr;
 
-            float x = selectionQuery.position.x / impl->view.getWidth();
-            float y = (1.f - (selectionQuery.position.y / impl->view.getHeight()));
+            // Convert from screen position to NDC.
+            float x = query.position.x / impl->view.getWidth();
+            float y = (1.f - (query.position.y / impl->view.getHeight()));
 
-            // TODO: read with a scalable thumb size
+            // TODO: read with a scalable thumb size.
             GLuint color = impl->selectionBuffer->readAt(x, y);
 
             if (color != 0) {
                 for (const auto& tile : impl->tileManager.getVisibleTiles()) {
                     if (auto props = tile->getSelectionFeature(color)) {
-                        queryResult = std::unique_ptr<FeaturePickResult>(new FeaturePickResult
-                            {props, {selectionQuery.position.x, selectionQuery.position.y}});
+                        featureResult.reset(new FeaturePickResult{props, {query.position.x, query.position.y}});
                         break;
                     }
                 }
-            }
-
-            selectionQuery.onFeatureSelection(queryResult.get());
-        }
-
-        impl->featureSelectionQueries.clear();
-
-        // Resolve label selection queries
-        for (const auto& labelQuery : impl->labelSelectionQueries) {
-            std::unique_ptr<LabelPickResult> queryResult;
-            Label* label;
-            Tile* tile;
-
-            float x = labelQuery.position.x / impl->view.getWidth();
-            float y = (1.f - (labelQuery.position.y / impl->view.getHeight()));
-
-            // TODO: read with a scalable thumb size and iterate over the read colors
-            GLuint color = impl->selectionBuffer->readAt(x, y);
-
-            if (color != 0) {
                 // Retrieve the label for this selection color
                 if (impl->labels.getLabel(impl->scene->styles(), impl->tileManager.getVisibleTiles(), color, label, tile)) {
                     LngLat coordinate = label->coordinate(*tile, impl->view.getMapProjection());
-
-                    queryResult = std::unique_ptr<LabelPickResult>(new LabelPickResult {label->renderType(), coordinate,
-                        {label->options().properties, {labelQuery.position.x, labelQuery.position.y}}});
+                    auto& props = label->options().properties;
+                    featureResult.reset(new FeaturePickResult{props, {query.position.x, query.position.y}});
+                    labelResult.reset(new LabelPickResult{label->renderType(), coordinate});
                 }
             }
 
-            // TODO: sort touch labels by distance
-
-            labelQuery.onLabelSelection(queryResult.get());
+            query.onFeatureSelection(featureResult.get(), labelResult.get());
         }
 
-        impl->labelSelectionQueries.clear();
+        impl->featureSelectionQueries.clear();
     }
 
     // Setup default framebuffer for a new frame
