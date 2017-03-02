@@ -229,13 +229,15 @@ void TileManager::updateTileSet(TileSet& _tileSet, const ViewState& _view,
             } else if (entry.needsLoading()) {
                 // Not yet available - enqueue for loading
                 enqueueTask(_tileSet, visTileId, _view);
-                m_tilesInProgress++;
 
             } else if (entry.isCanceled() &&
                        (entry.task->sourceGeneration() < generation)) {
                 // Tile needs update - enqueue for loading
                 entry.task = _tileSet.source->createTask(visTileId);
                 enqueueTask(_tileSet, visTileId, _view);
+            }
+
+            if (!entry.isReady() || (entry.tile->sourceGeneration() < generation)) {
                 m_tilesInProgress++;
             }
 
