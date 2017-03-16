@@ -20,6 +20,8 @@
 
 @interface MapViewControllerRecognizerDelegate : NSObject <TGRecognizerDelegate>
 
+@property (assign, nonatomic) BOOL added;
+
 - (void)mapView:(TGMapViewController *)view recognizer:(UIGestureRecognizer *)recognizer didRecognizeSingleTapGesture:(CGPoint)location;
 - (void)mapView:(TGMapViewController *)view recognizer:(UIGestureRecognizer *)recognizer didRecognizeLongPressGesture:(CGPoint)location;
 
