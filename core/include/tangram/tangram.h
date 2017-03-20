@@ -153,6 +153,8 @@ public:
     // Get the fractional zoom level of the view
     float getZoom();
 
+    void flyTo(double _lon, double _lat, float _z, float _duration);
+
     // Set the counter-clockwise rotation of the view in radians; 0 corresponds to
     // North pointing up; if duration (in seconds) is provided, rotation eases to the
     // the set value over the duration; calling either version of the setter overrides

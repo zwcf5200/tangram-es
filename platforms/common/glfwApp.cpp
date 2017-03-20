@@ -384,6 +384,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 map->setPosition(8.82, 53.08);
                 map->setZoom(14);
                 break;
+            case GLFW_KEY_F:
+                map->flyTo(8.82, 53.08, 16., 12.);
+                break;
         default:
                 break;
         }
