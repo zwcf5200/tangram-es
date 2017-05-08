@@ -237,15 +237,7 @@ extern "C" {
         map->setPickRadius(radius);
     }
 
-    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativePickFeature(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jfloat posX, jfloat posY, jobject listener) {
-        assert(mapPtr > 0);
-        auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto object = jniEnv->NewGlobalRef(listener);
-        map->pickFeatureAt(posX, posY, [object](auto pickResult) {
-            Tangram::featurePickCallback(object, pickResult);
-        });
-    }
-
+#if 0
     JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativePickMarker(JNIEnv* jniEnv, jobject obj, jobject tangramInstance, jlong mapPtr, jfloat posX, jfloat posY, jobject listener) {
         assert(mapPtr > 0);
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
@@ -264,6 +256,7 @@ extern "C" {
             Tangram::labelPickCallback(object, pickResult);
         });
     }
+#endif
 
     // NOTE unsigned int to jlong for precision... else we can do jint return
     JNIEXPORT jlong JNICALL Java_com_mapzen_tangram_MapController_nativeMarkerAdd(JNIEnv* jniEnv, jobject obj, jlong mapPtr) {
@@ -519,6 +512,17 @@ extern "C" {
 
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
         map->queueSceneUpdate(sceneUpdates);
+    }
+
+    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativeCreateSelectionQueries(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jobjectArray queries) {
+        assert(mapPtr > 0);
+        auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
+
+        size_t nQueries = jniEnv->GetArrayLength(queries);
+        for (size_t i = 0; i < nQueries; ++i) {
+            jobject selectionQuery = jniEnv->GetObjectArrayElement(queries, i);
+            Tangram::createSelectionQuery(map, jniEnv, selectionQuery);
+        }
     }
 
     JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativeApplySceneUpdates(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jobject updateErrorCallback) {

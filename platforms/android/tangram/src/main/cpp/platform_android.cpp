@@ -41,9 +41,6 @@ static jmethodID startUrlRequestMID = 0;
 static jmethodID cancelUrlRequestMID = 0;
 static jmethodID getFontFilePath = 0;
 static jmethodID getFontFallbackFilePath = 0;
-static jmethodID onFeaturePickMID = 0;
-static jmethodID onLabelPickMID = 0;
-static jmethodID onMarkerPickMID = 0;
 static jmethodID labelPickResultInitMID = 0;
 static jmethodID markerPickResultInitMID = 0;
 static jmethodID onSceneUpdateErrorMID = 0;
@@ -52,6 +49,13 @@ static jmethodID sceneUpdateErrorInitMID = 0;
 static jclass labelPickResultClass = nullptr;
 static jclass sceneUpdateErrorClass = nullptr;
 static jclass markerPickResultClass = nullptr;
+
+static jclass selectionQueryClass = nullptr;
+static jmethodID selectionQueryGetTypeOrdinalMID = 0;
+static jmethodID selectionQuerySetFeaturePickResultMID = 0;
+static jmethodID selectionQuerySetLabelPickResultMID = 0;
+static jmethodID selectionQuerySetMarkerPickResultMID = 0;
+static jmethodID selectionQueryGetPositionMID = 0;
 
 static jclass hashmapClass = nullptr;
 static jmethodID hashmapInitMID = 0;
@@ -84,11 +88,6 @@ void setupJniEnv(JNIEnv* jniEnv) {
     requestRenderMethodID = jniEnv->GetMethodID(tangramClass, "requestRender", "()V");
     setRenderModeMethodID = jniEnv->GetMethodID(tangramClass, "setRenderMode", "(I)V");
 
-    jclass featurePickListenerClass = jniEnv->FindClass("com/mapzen/tangram/MapController$FeaturePickListener");
-    onFeaturePickMID = jniEnv->GetMethodID(featurePickListenerClass, "onFeaturePick", "(Ljava/util/Map;FF)V");
-    jclass labelPickListenerClass = jniEnv->FindClass("com/mapzen/tangram/MapController$LabelPickListener");
-    onLabelPickMID = jniEnv->GetMethodID(labelPickListenerClass, "onLabelPick", "(Lcom/mapzen/tangram/LabelPickResult;FF)V");
-
     if (labelPickResultClass) {
         jniEnv->DeleteGlobalRef(labelPickResultClass);
     }
@@ -116,10 +115,17 @@ void setupJniEnv(JNIEnv* jniEnv) {
     hashmapInitMID = jniEnv->GetMethodID(hashmapClass, "<init>", "()V");
     hashmapPutMID = jniEnv->GetMethodID(hashmapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
-    markerByIDMID = jniEnv->GetMethodID(tangramClass, "markerById", "(J)Lcom/mapzen/tangram/Marker;");
+    if (selectionQueryClass) {
+        jniEnv->DeleteGlobalRef(selectionQueryClass);
+    }
+    selectionQueryClass = (jclass)jniEnv->NewGlobalRef(jniEnv->FindClass("com/mapzen/tangram/SelectionQuery"));
+    selectionQueryGetTypeOrdinalMID = jniEnv->GetMethodID(selectionQueryClass, "getTypeOrdinal", "()I");
+    selectionQuerySetFeaturePickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setFeaturePickResult", "(Ljava/util/Map;)V");
+    selectionQuerySetLabelPickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setLabelPickResult", "(Lcom/mapzen/tangram/LabelPickResult;)V");
+    //selectionQuerySetMarkerPickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setMarkerPickResult", "(Lcom/mapzen/tangram/MarkerPickResult;)V");
+    selectionQueryGetPositionMID = jniEnv->GetMethodID(selectionQueryClass, "getPosition", "()[F");
 
-    jclass markerPickListenerClass = jniEnv->FindClass("com/mapzen/tangram/MapController$MarkerPickListener");
-    onMarkerPickMID = jniEnv->GetMethodID(markerPickListenerClass, "onMarkerPick", "(Lcom/mapzen/tangram/MarkerPickResult;FF)V");
+    markerByIDMID = jniEnv->GetMethodID(tangramClass, "markerById", "(J)Lcom/mapzen/tangram/Marker;");
 }
 
 void onUrlSuccess(JNIEnv* _jniEnv, jbyteArray _jBytes, jlong _jCallbackPtr) {
@@ -380,7 +386,31 @@ void sceneUpdateErrorCallback(jobject updateCallbackRef, const SceneUpdateError&
     jniEnv->DeleteGlobalRef(updateCallbackRef);
 }
 
-void labelPickCallback(jobject listener, const Tangram::LabelPickResult* labelPickResult) {
+void featurePickCallback(jobject selectionQueryGlobalRef, const Tangram::FeaturePickResult* featurePickResult) {
+
+    JniThreadBinding jniEnv(jvm);
+
+    jobject hashmap = jniEnv->NewObject(hashmapClass, hashmapInitMID);
+    float position[2] = {0.0, 0.0};
+
+    if (featurePickResult) {
+        auto properties = featurePickResult->properties;
+
+        position[0] = featurePickResult->position[0];
+        position[1] = featurePickResult->position[1];
+
+        for (const auto& item : properties->items()) {
+            jstring jkey = jniEnv->NewStringUTF(item.key.c_str());
+            jstring jvalue = jniEnv->NewStringUTF(properties->asString(item.value).c_str());
+            jniEnv->CallObjectMethod(hashmap, hashmapPutMID, jkey, jvalue);
+        }
+    }
+
+    jniEnv->CallVoidMethod(selectionQueryGlobalRef, selectionQuerySetFeaturePickResultMID, hashmap);
+    jniEnv->DeleteGlobalRef(selectionQueryGlobalRef);
+}
+
+void labelPickCallback(jobject selectionQueryGlobalRef, const Tangram::LabelPickResult* labelPickResult) {
 
     JniThreadBinding jniEnv(jvm);
 
@@ -403,14 +433,14 @@ void labelPickCallback(jobject listener, const Tangram::LabelPickResult* labelPi
         }
 
         labelPickResultObject = jniEnv->NewObject(labelPickResultClass, labelPickResultInitMID, labelPickResult->coordinates.longitude,
-            labelPickResult->coordinates.latitude, labelPickResult->type, hashmap);
+                                                  labelPickResult->coordinates.latitude, labelPickResult->type, hashmap);
     }
 
-    jniEnv->CallVoidMethod(listener, onLabelPickMID, labelPickResultObject, position[0], position[1]);
-    jniEnv->DeleteGlobalRef(listener);
+    jniEnv->CallVoidMethod(selectionQueryGlobalRef, selectionQuerySetLabelPickResultMID, labelPickResultObject);
+    jniEnv->DeleteGlobalRef(selectionQueryGlobalRef);
 }
 
-void markerPickCallback(jobject listener, jobject tangramInstance, const Tangram::MarkerPickResult* markerPickResult) {
+void markerPickCallback(jobject selectionQueryGlobalRef, const Tangram::MarkerPickResult* markerPickResult) {
 
     JniThreadBinding jniEnv(jvm);
     float position[2] = {0.0, 0.0};
@@ -433,33 +463,40 @@ void markerPickCallback(jobject listener, jobject tangramInstance, const Tangram
         }
     }
 
-    jniEnv->CallVoidMethod(listener, onMarkerPickMID, markerPickResultObject, position[0], position[1]);
-    jniEnv->DeleteGlobalRef(listener);
-    jniEnv->DeleteGlobalRef(tangramInstance);
+    // jniEnv->CallVoidMethod(selectionQueryGlobalRef, selectionQuerySetMarkerPickResultMID, markerPickResultObject);
+    jniEnv->DeleteGlobalRef(selectionQueryGlobalRef);
 }
 
-void featurePickCallback(jobject listener, const Tangram::FeaturePickResult* featurePickResult) {
+void createSelectionQuery(Map* map, JNIEnv* jniEnv, jobject selectionQuery) {
+    jint typeOrdinal = jniEnv->CallIntMethod(selectionQuery, selectionQueryGetTypeOrdinalMID);
+    AndroidPlatform::SelectionQueryType type = (AndroidPlatform::SelectionQueryType)typeOrdinal;
 
-    JniThreadBinding jniEnv(jvm);
+    float position[2];
+    jfloatArray floatArray = (jfloatArray) jniEnv->CallObjectMethod(selectionQuery, selectionQueryGetPositionMID);
+    jniEnv->GetFloatArrayRegion(floatArray, 0, 2, position);
 
-    jobject hashmap = jniEnv->NewObject(hashmapClass, hashmapInitMID);
-    float position[2] = {0.0, 0.0};
+    jobject selectionQueryGlobalRef = jniEnv->NewGlobalRef(selectionQuery);
 
-    if (featurePickResult) {
-        auto properties = featurePickResult->properties;
-
-        position[0] = featurePickResult->position[0];
-        position[1] = featurePickResult->position[1];
-
-        for (const auto& item : properties->items()) {
-            jstring jkey = jniEnv->NewStringUTF(item.key.c_str());
-            jstring jvalue = jniEnv->NewStringUTF(properties->asString(item.value).c_str());
-            jniEnv->CallObjectMethod(hashmap, hashmapPutMID, jkey, jvalue);
+    switch (type) {
+        case AndroidPlatform::SelectionQueryType::FEATURE: {
+            map->pickFeatureAt(position[0], position[1], [selectionQueryGlobalRef](auto featurePickResult) {
+                featurePickCallback(selectionQueryGlobalRef, featurePickResult);
+            });
+        } break;
+        case AndroidPlatform::SelectionQueryType::LABEL: {
+            map->pickLabelAt(position[0], position[1], [selectionQueryGlobalRef](auto labelPickResult) {
+                labelPickCallback(selectionQueryGlobalRef, labelPickResult);
+            });
+        } break;
+        case AndroidPlatform::SelectionQueryType::MARKER: {
+            map->pickMarkerAt(position[0], position[1], [selectionQueryGlobalRef](auto markerPickResult) {
+                markerPickCallback(selectionQueryGlobalRef, markerPickResult);
+            });
+        } break;
+        default: {
+            assert(false);
         }
     }
-
-    jniEnv->CallVoidMethod(listener, onFeaturePickMID, hashmap, position[0], position[1]);
-    jniEnv->DeleteGlobalRef(listener);
 }
 
 void initGLExtensions() {

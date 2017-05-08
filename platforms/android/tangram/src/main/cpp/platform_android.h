@@ -17,19 +17,24 @@ std::string stringFromJString(JNIEnv* jniEnv, jstring string);
 
 namespace Tangram {
 
+class Map;
+
 struct LabelPickResult;
 struct FeaturePickResult;
 struct MarkerPickResult;
 struct SceneUpdateError;
 
-void featurePickCallback(jobject listener, const Tangram::FeaturePickResult* featurePickResult);
-void markerPickCallback(jobject listener, jobject tangramInstance, const Tangram::MarkerPickResult* markerPickResult);
-void labelPickCallback(jobject listener, const Tangram::LabelPickResult* labelPickResult);
 void sceneUpdateErrorCallback(jobject updateStatusCallbackRef, const SceneUpdateError& sceneUpdateErrorStatus);
+void createSelectionQuery(Map* map, JNIEnv* jniEnv, jobject selectionQueryGlobalRef);
 
 class AndroidPlatform : public Platform {
 
 public:
+    enum class SelectionQueryType {
+        LABEL,
+        FEATURE,
+        MARKER,
+    };
 
     AndroidPlatform(JNIEnv* _jniEnv, jobject _assetManager, jobject _tangramInstance);
     void dispose(JNIEnv* _jniEnv);

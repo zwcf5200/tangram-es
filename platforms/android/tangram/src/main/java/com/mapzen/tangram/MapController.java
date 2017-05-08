@@ -13,11 +13,18 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 import java.io.IOException;
-import java.util.function.Function;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import android.os.Handler;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -746,7 +753,7 @@ public class MapController implements Renderer {
     public void pickFeature(float posX, float posY) {
         if (featurePickListener != null) {
             checkPointer(mapPointer);
-            nativePickFeature(mapPointer, posX, posY, featurePickListener);
+            selectionQueryQueue.add(new SelectionQuery(posX, posY, SelectionQuery.Type.FEATURE));
         }
     }
 
@@ -759,7 +766,7 @@ public class MapController implements Renderer {
     public void pickLabel(float posX, float posY) {
         if (labelPickListener != null) {
             checkPointer(mapPointer);
-            nativePickLabel(mapPointer, posX, posY, labelPickListener);
+            selectionQueryQueue.add(new SelectionQuery(posX, posY, SelectionQuery.Type.LABEL));
         }
     }
 
@@ -772,7 +779,7 @@ public class MapController implements Renderer {
     public void pickMarker(float posX, float posY) {
         if (markerPickListener != null) {
             checkPointer(mapPointer);
-            nativePickMarker(this, mapPointer, posX, posY, markerPickListener);
+            selectionQueryQueue.add(new SelectionQuery(posX, posY, SelectionQuery.Type.MARKER));
         }
     }
 
@@ -1042,9 +1049,6 @@ public class MapController implements Renderer {
     private synchronized native void nativeQueueSceneUpdates(long mapPtr, String[] updateStrings);
     private synchronized native void nativeApplySceneUpdates(long mapPtr, SceneUpdateErrorListener listener);
     private synchronized native void nativeSetPickRadius(long mapPtr, float radius);
-    private synchronized native void nativePickFeature(long mapPtr, float posX, float posY, FeaturePickListener listener);
-    private synchronized native void nativePickLabel(long mapPtr, float posX, float posY, LabelPickListener listener);
-    private synchronized native void nativePickMarker(MapController instance, long mapPtr, float posX, float posY, MarkerPickListener listener);
     private synchronized native long nativeMarkerAdd(long mapPtr);
     private synchronized native boolean nativeMarkerRemove(long mapPtr, long markerID);
     private synchronized native boolean nativeMarkerSetStylingFromString(long mapPtr, long markerID, String styling);
@@ -1057,6 +1061,7 @@ public class MapController implements Renderer {
     private synchronized native boolean nativeMarkerSetVisible(long mapPtr, long markerID, boolean visible);
     private synchronized native boolean nativeMarkerSetDrawOrder(long mapPtr, long markerID, int drawOrder);
     private synchronized native void nativeMarkerRemoveAll(long mapPtr);
+    private synchronized native void nativeCreateSelectionQueries(long mapPtr, SelectionQuery[] queries);
 
     private synchronized native void nativeUseCachedGlState(long mapPtr, boolean use);
     private synchronized native void nativeCaptureSnapshot(long mapPtr, int[] buffer);
@@ -1093,6 +1098,8 @@ public class MapController implements Renderer {
     private boolean frameCaptureAwaitCompleteView;
     private Map<String, MapData> clientTileSources = new HashMap<>();
     private Map<Long, Marker> markers = new HashMap<>();
+    private Queue<SelectionQuery> selectionQueryQueue = new ArrayDeque<>();
+    private Handler mainThreadHandler;
 
     // GLSurfaceView.Renderer methods
     // ==============================
@@ -1109,17 +1116,36 @@ public class MapController implements Renderer {
             return;
         }
 
+        Deque<SelectionQuery> pendingSelectionQueries;
+
+        synchronized (selectionQueryQueue) {
+            pendingSelectionQueries = new ArrayDeque<>(selectionQueryQueue);
+            selectionQueryQueue.clear();
+        }
+
+        // Create selection queries that will be resolved at render time
+        if (!pendingSelectionQueries.isEmpty()) {
+            SelectionQuery[] queries = new SelectionQuery[pendingSelectionQueries.size()];
+            pendingSelectionQueries.toArray(queries);
+            nativeCreateSelectionQueries(mapPointer, queries);
+        }
+
         boolean viewComplete = nativeUpdate(mapPointer, delta);
         nativeRender(mapPointer);
 
         if (viewComplete && viewCompleteListener != null) {
             viewCompleteListener.onViewComplete();
         }
+
         if (frameCaptureCallback != null) {
             if (!frameCaptureAwaitCompleteView || viewComplete) {
                 frameCaptureCallback.onCaptured(capture());
                 frameCaptureCallback = null;
             }
+        }
+
+        if (!pendingSelectionQueries.isEmpty()) {
+            postSelectionQueryResultsToUIThread(pendingSelectionQueries);
         }
     }
 
@@ -1132,6 +1158,37 @@ public class MapController implements Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         nativeSetupGL(mapPointer);
+    }
+
+    void postSelectionQueryResultsToUIThread(final Deque<SelectionQuery> resolvedQueries) {
+
+        Runnable UITask = new Runnable() {
+            @Override
+            public void run() {
+                while (!resolvedQueries.isEmpty()) {
+                    SelectionQuery query = resolvedQueries.poll();
+                    switch (query.getType()) {
+                        case FEATURE:
+                            if (featurePickListener != null) {
+                                featurePickListener.onFeaturePick(query.getFeaturePickResult(), query.getX(), query.getY());
+                            }
+                            break;
+                        case LABEL:
+                            if (labelPickListener != null) {
+                                labelPickListener.onLabelPick(query.getLabelPickResult(), query.getX(), query.getY());
+                            }
+                            break;
+                        case MARKER:
+                            if (markerPickListener != null) {
+                                markerPickListener.onMarkerPick(query.getMarkerPickresult(), query.getX(), query.getY());
+                            }
+                            break;
+                    }
+                }
+            }
+        };
+
+        this.postUIThreadTask(UITask);
     }
 
     // Networking methods
@@ -1181,4 +1238,14 @@ public class MapController implements Renderer {
         return fontFileParser.getFontFallback(importance, weightHint);
     }
 
+
+    // Main thread messaging
+    // =====================
+    void setMainThreadHandler(Handler mainThreadHandler) {
+        this.mainThreadHandler = mainThreadHandler;
+    }
+
+    void postUIThreadTask(Runnable task) {
+        mainThreadHandler.post(task);
+    }
 }

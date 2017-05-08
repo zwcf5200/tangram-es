@@ -4,11 +4,11 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -104,7 +104,9 @@ public class MapView extends FrameLayout {
     }
 
     protected MapController getMapInstance() {
-        return MapController.getInstance(glSurfaceView);
+        MapController mapController = MapController.getInstance(glSurfaceView);
+        mapController.setMainThreadHandler(new Handler(getContext().getMainLooper()));
+        return mapController;
     }
 
     protected void configureGLSurfaceView() {
