@@ -53,7 +53,7 @@ class SelectionQuery {
         this.featurePickResult = featurePickResult;
     }
 
-    public void setMarkerPickresult(MarkerPickResult markerPickresult) {
+    public void setMarkerPickResult(MarkerPickResult markerPickresult) {
         this.markerPickresult = markerPickresult;
     }
 

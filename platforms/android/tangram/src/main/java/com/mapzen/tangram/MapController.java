@@ -14,15 +14,11 @@ import okhttp3.Response;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Queue;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import android.os.Handler;
 
@@ -1116,7 +1112,7 @@ public class MapController implements Renderer {
             return;
         }
 
-        Deque<SelectionQuery> pendingSelectionQueries;
+        Queue<SelectionQuery> pendingSelectionQueries;
 
         synchronized (selectionQueryQueue) {
             pendingSelectionQueries = new ArrayDeque<>(selectionQueryQueue);
@@ -1160,7 +1156,7 @@ public class MapController implements Renderer {
         nativeSetupGL(mapPointer);
     }
 
-    void postSelectionQueryResultsToUIThread(final Deque<SelectionQuery> resolvedQueries) {
+    void postSelectionQueryResultsToUIThread(final Queue<SelectionQuery> resolvedQueries) {
 
         Runnable UITask = new Runnable() {
             @Override

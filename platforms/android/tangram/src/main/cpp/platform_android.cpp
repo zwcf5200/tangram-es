@@ -122,7 +122,7 @@ void setupJniEnv(JNIEnv* jniEnv) {
     selectionQueryGetTypeOrdinalMID = jniEnv->GetMethodID(selectionQueryClass, "getTypeOrdinal", "()I");
     selectionQuerySetFeaturePickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setFeaturePickResult", "(Ljava/util/Map;)V");
     selectionQuerySetLabelPickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setLabelPickResult", "(Lcom/mapzen/tangram/LabelPickResult;)V");
-    //selectionQuerySetMarkerPickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setMarkerPickResult", "(Lcom/mapzen/tangram/MarkerPickResult;)V");
+    selectionQuerySetMarkerPickResultMID = jniEnv->GetMethodID(selectionQueryClass, "setMarkerPickResult", "(Lcom/mapzen/tangram/MarkerPickResult;)V");
     selectionQueryGetPositionMID = jniEnv->GetMethodID(selectionQueryClass, "getPosition", "()[F");
 
     markerByIDMID = jniEnv->GetMethodID(tangramClass, "markerById", "(J)Lcom/mapzen/tangram/Marker;");
@@ -463,7 +463,7 @@ void markerPickCallback(jobject selectionQueryGlobalRef, const Tangram::MarkerPi
         }
     }
 
-    // jniEnv->CallVoidMethod(selectionQueryGlobalRef, selectionQuerySetMarkerPickResultMID, markerPickResultObject);
+    jniEnv->CallVoidMethod(selectionQueryGlobalRef, selectionQuerySetMarkerPickResultMID, markerPickResultObject);
     jniEnv->DeleteGlobalRef(selectionQueryGlobalRef);
 }
 
