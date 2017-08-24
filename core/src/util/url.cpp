@@ -166,6 +166,17 @@ Url Url::standardized() const {
     // Remove any dot segments from the path.
     size_t count = removeDotSegmentsFromRange(t.buffer, t.parts.path.start, t.parts.path.count);
 
+    // TODO: For each segment of the path, %-encode any reserved characters.
+
+    // TODO: For the parameters, %-encode reserved characters except '=' and ';'.
+
+    // TODO: For the query, %-encode reserved characters except '&', '=', and ','.
+
+    // TODO: For the fragment, %-encode non-ascii characters?
+
+    // See: https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/HttpUrl.java#L1869
+    // and https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/HttpUrl.java#L290
+
     if (count != t.parts.path.count) {
 
         // The new path should always be the same size or shorter.
