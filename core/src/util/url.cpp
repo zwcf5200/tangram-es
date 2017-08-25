@@ -160,13 +160,34 @@ Url Url::standardized() const {
         return *this;
     }
 
-    // Create the target URL by copying this URL.
-    Url t(*this);
+    // Create an empty target URL.
+    Url t;
+
+    // Copy the scheme from this URL, converting letters to lowercase.
+    t.parts.scheme.start = t.buffer.size();
+    for (size_t i = 0; i != parts.scheme.count; i++) {
+        auto c = buffer[parts.scheme.start + i];
+        if (c >= 'A' && c <= 'Z') {
+            c += 'a' - 'A';
+        }
+        t.buffer += c;
+    }
+    t.parts.scheme.count = t.buffer.size() - t.parts.scheme.start;
+
+    // Copy any characters between the scheme and the netLocation.
+    for (size_t i = parts.scheme.start + parts.scheme.count; i != parts.location.start; i++) {
+        t.buffer += buffer[i];
+    }
+
+    // Copy the netLocation from this URL, %-encoding any reserved characters.
+    t.parts.location.start = t.buffer.size();
+    escapeReservedCharacters(buffer, parts.location.start, parts.location.count, t.buffer, t.buffer.size());
+    t.parts.location.count = t.buffer.size() - t.parts.location.start;
+
+    // TODO: For each segment of the path, %-encode any reserved characters.
 
     // Remove any dot segments from the path.
     size_t count = removeDotSegmentsFromRange(t.buffer, t.parts.path.start, t.parts.path.count);
-
-    // TODO: For each segment of the path, %-encode any reserved characters.
 
     // TODO: For the parameters, %-encode reserved characters except '=' and ';'.
 
@@ -357,7 +378,10 @@ void Url::parse() {
         auto c = buffer[i];
 
         // A scheme is permitted to contain only alphanumeric characters, '+', '.', and '-'.
-        while (i < end && (isalnum(c) || c == '+' || c == '.' || c == '-')) {
+        while (i < end && ((c >= 'a' && c <= 'z') ||
+                           (c >= 'A' && c <= 'Z') ||
+                           (c >= '0' && c <= '9') ||
+                           (c == '+') || (c == '.') || (c == '-'))) {
             c = buffer[++i];
         }
 
@@ -572,18 +596,23 @@ std::string Url::escapeReservedCharacters(const std::string& in) {
     std::string out;
     // The output string will be at least as long as the input, possibly longer.
     out.reserve(in.size());
-    for (auto it = in.begin(), end = in.end(); it != end; ++it) {
+    escapeReservedCharacters(in, 0, in.size(), out, 0);
+    return out;
+}
+
+void Url::escapeReservedCharacters(const std::string& in, size_t inStart, size_t inCount, std::string& out, size_t outStart) {
+    for (auto it = in.begin() + inStart, end = it + inCount; it != end; ++it) {
         if (isReservedCharacter(*it)) {
             // Escape the character with %-encoding.
-            out += '%';
-            out += encodeHexDigit(*it >> 4);
-            out += encodeHexDigit(*it);
+            char encoded[] = { '%', encodeHexDigit(*it >> 4), encodeHexDigit(*it) };
+            out.insert(outStart, encoded, 3);
+            outStart += 3;
         } else {
             // Copy the character as-is.
-            out += *it;
+            out.insert(outStart, *it, 1);
+            outStart += 1;
         }
     }
-    return out;
 }
 
 std::string Url::unEscapeReservedCharacters(const std::string& in) {
