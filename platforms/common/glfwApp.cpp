@@ -33,6 +33,10 @@ std::string mapzenApiKey;
 std::string markerStylingPath = "layers.touch.point.draw.icons";
 std::string polylineStyle = "{ style: lines, interactive: true, color: red, width: 20px, order: 5000 }";
 
+std::string testYamlImport = "{ import: [ /Users/varuntalwar/Development/walkabout-style/walkabout-style.yaml, /Users/varuntalwar/Development/walkabout-style/themes/label-5.yaml ], global: { sdk_mapzen_api_key: '' } }";
+
+SceneID latest;
+
 
 GLFWwindow* main_window = nullptr;
 Tangram::Map* map = nullptr;
@@ -63,9 +67,9 @@ void loadSceneFile(bool setPosition) {
     }
 
     if (!sceneYaml.empty()) {
-        map->loadSceneYamlAsync(sceneYaml, sceneFile, setPosition, updates);
+        latest = map->loadSceneYamlAsync(sceneYaml, sceneFile, setPosition, updates);
     } else {
-        map->loadSceneAsync(sceneFile, setPosition, updates);
+        latest = map->loadSceneAsync(sceneFile, setPosition, updates);
     }
 }
 
@@ -129,6 +133,16 @@ void create(std::shared_ptr<Platform> p, int w, int h) {
     if (!map) {
         map = new Tangram::Map(platform);
     }
+
+    map->setSceneReadyListener([](SceneID id, const SceneError* error) {
+        if (id != latest) {
+            SceneID test = latest;
+            LOG("This is the scene ready which will be envoked when sceneID is NOT latest");
+        } else {
+            SceneID test = latest;
+            LOG("This is the scene ready which will be envoked when sceneID is latest");
+        }
+    });
 
     // Build a version string for the window title.
     char versionString[256] = { 0 };
@@ -406,6 +420,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             case GLFW_KEY_9:
                 Tangram::toggleDebugFlag(Tangram::DebugFlags::selection_buffer);
                 break;
+
             case GLFW_KEY_BACKSPACE:
                 recreate_context = true;
                 break;
@@ -434,9 +449,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             case GLFW_KEY_I:
                 map->updateSceneAsync({SceneUpdate{"cameras", "{ main_camera: { type: isometric } }"}});
                 break;
-            case GLFW_KEY_M:
-                map->loadSceneYamlAsync("{ scene: { background: { color: red } } }", std::string(""));
+            case GLFW_KEY_M: {
+                std::vector<SceneUpdate> updates;
+
+                if (!mapzenApiKey.empty()) {
+                    updates.push_back(SceneUpdate("global.sdk_mapzen_api_key", mapzenApiKey));
+                }
+                latest = map->loadSceneYamlAsync(testYamlImport, std::string(""), false, updates);
                 break;
+            }
             case GLFW_KEY_G:
                 static bool geoJSON = false;
                 if (!geoJSON) {
