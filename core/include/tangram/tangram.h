@@ -9,7 +9,7 @@
 #define TANGRAM_VERSION_MINOR 8
 #define TANGRAM_VERSION_PATCH 0
 
-#include "data/clientGeoJsonSource.h"
+#include "data/clientTileSource.h"
 #include "data/properties.h"
 #include "data/propertyItem.h"
 #include "data/tileSource.h"

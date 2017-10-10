@@ -1,6 +1,6 @@
 #include "map.h"
 
-#include "data/clientGeoJsonSource.h"
+#include "data/clientTileSource.h"
 #include "debug/textDisplay.h"
 #include "debug/frameInfo.h"
 #include "gl.h"

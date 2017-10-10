@@ -5,23 +5,20 @@
 
 #include <mutex>
 
-
 namespace Tangram {
 
 class Platform;
-
 struct Properties;
+struct ClientTileData;
 
-struct ClientGeoJsonData;
-
-class ClientGeoJsonSource : public TileSource {
+class ClientTileSource : public TileSource {
 
 public:
 
-    ClientGeoJsonSource(std::shared_ptr<Platform> _platform, const std::string& _name,
+    ClientTileSource(std::shared_ptr<Platform> _platform, const std::string& _name,
             const std::string& _url, bool generateCentroids = false,
             TileSource::ZoomOptions _zoomOptions = {});
-    ~ClientGeoJsonSource();
+    ~ClientTileSource();
 
     // http://www.iana.org/assignments/media-types/application/geo+json
     virtual const char* mimeType() const override { return "application/geo+json"; };
@@ -44,7 +41,7 @@ protected:
     virtual std::shared_ptr<TileData> parse(const TileTask& _task,
                                             const MapProjection& _projection) const override;
 
-    std::unique_ptr<ClientGeoJsonData> m_store;
+    std::unique_ptr<ClientTileData> m_store;
 
     mutable std::mutex m_mutexStore;
     bool m_hasPendingData = false;

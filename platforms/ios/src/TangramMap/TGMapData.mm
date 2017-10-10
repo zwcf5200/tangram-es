@@ -14,7 +14,7 @@ typedef std::vector<Tangram::LngLat> Line;
 typedef std::vector<Line> Polygon;
 
 @interface TGMapData () {
-    std::shared_ptr<Tangram::ClientGeoJsonSource> dataSource;
+    std::shared_ptr<Tangram::ClientTileSource> dataSource;
 }
 
 @property (copy, nonatomic) NSString* name;
@@ -32,7 +32,7 @@ static inline void tangramProperties(TGFeatureProperties* properties, Tangram::P
 
 @implementation TGMapData
 
-- (instancetype)initWithMapView:(TGMapViewController *)mapView name:(NSString *)name source:(std::shared_ptr<Tangram::ClientGeoJsonSource>)source
+- (instancetype)initWithMapView:(TGMapViewController *)mapView name:(NSString *)name source:(std::shared_ptr<Tangram::ClientTileSource>)source
 {
     self = [super init];
 

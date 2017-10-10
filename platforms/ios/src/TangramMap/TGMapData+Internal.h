@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <memory>
-#import "data/clientGeoJsonSource.h"
+#import "data/clientTileSource.h"
 
 @interface TGMapData ()
 

@@ -7,7 +7,7 @@
 //
 
 #import "TGMapViewController.h"
-#import "data/clientGeoJsonSource.h"
+#import "data/clientTileSource.h"
 #import "map.h"
 #import <vector>
 #import <memory>
@@ -16,7 +16,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-- (BOOL)removeDataSource:(std::shared_ptr<Tangram::ClientGeoJsonSource>)tileSource name:(NSString *)name;
+- (BOOL)removeDataSource:(std::shared_ptr<Tangram::ClientTileSource>)tileSource name:(NSString *)name;
 
 - (void)clearDataSource:(std::shared_ptr<Tangram::TileSource>)tileSource;
 

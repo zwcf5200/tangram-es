@@ -1,4 +1,4 @@
-#include "data/clientGeoJsonSource.h"
+#include "data/clientTileSource.h"
 
 #include "platform.h"
 #include "tile/tileTask.h"
@@ -33,19 +33,19 @@ geojsonvt::Options options() {
     return opt;
 }
 
-struct ClientGeoJsonData {
+struct ClientTileData {
     std::unique_ptr<geojsonvt::GeoJSONVT> tiles;
     mapbox::geometry::feature_collection<double> features;
     std::vector<Properties> properties;
 };
 
-std::shared_ptr<TileTask> ClientGeoJsonSource::createTask(TileID _tileId, int _subTask) {
+std::shared_ptr<TileTask> ClientTileSource::createTask(TileID _tileId, int _subTask) {
     return std::make_shared<TileTask>(_tileId, shared_from_this(), _subTask);
 }
 
 
 // TODO: pass scene's resourcePath to constructor to be used with `stringFromFile`
-ClientGeoJsonSource::ClientGeoJsonSource(std::shared_ptr<Platform> _platform,
+ClientTileSource::ClientTileSource(std::shared_ptr<Platform> _platform,
                                          const std::string& _name, const std::string& _url,
                                          bool _generateCentroids,
                                          TileSource::ZoomOptions _zoomOptions)
@@ -57,7 +57,7 @@ ClientGeoJsonSource::ClientGeoJsonSource(std::shared_ptr<Platform> _platform,
     // TODO: handle network url for client datasource data
     // TODO: generic uri handling
     m_generateGeometry = true;
-    m_store = std::make_unique<ClientGeoJsonData>();
+    m_store = std::make_unique<ClientTileData>();
 
     if (!_url.empty()) {
         std::regex r("^(http|https):/");
@@ -76,7 +76,7 @@ ClientGeoJsonSource::ClientGeoJsonSource(std::shared_ptr<Platform> _platform,
     }
 }
 
-ClientGeoJsonSource::~ClientGeoJsonSource() {}
+ClientTileSource::~ClientTileSource() {}
 
 struct add_centroid {
 
@@ -140,7 +140,7 @@ struct prop_visitor {
     }
 };
 
-void ClientGeoJsonSource::generateLabelCentroidFeature() {
+void ClientTileSource::generateLabelCentroidFeature() {
     for (const auto &feat : m_store->features) {
         geometry::point<double> centroid;
         const auto& properties = m_store->properties[feat.id.get<uint64_t>()];
@@ -154,7 +154,7 @@ void ClientGeoJsonSource::generateLabelCentroidFeature() {
     }
 }
 
-void ClientGeoJsonSource::addData(const std::string& _data) {
+void ClientTileSource::addData(const std::string& _data) {
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
@@ -187,7 +187,7 @@ void ClientGeoJsonSource::addData(const std::string& _data) {
     m_generation++;
 }
 
-void ClientGeoJsonSource::loadTileData(std::shared_ptr<TileTask> _task, TileTaskCb _cb) {
+void ClientTileSource::loadTileData(std::shared_ptr<TileTask> _task, TileTaskCb _cb) {
 
     if (m_hasPendingData) {
         return;
@@ -203,7 +203,7 @@ void ClientGeoJsonSource::loadTileData(std::shared_ptr<TileTask> _task, TileTask
     TileSource::loadTileData(_task, _cb);
 }
 
-void ClientGeoJsonSource::clearData() {
+void ClientTileSource::clearData() {
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
@@ -214,7 +214,7 @@ void ClientGeoJsonSource::clearData() {
     m_generation++;
 }
 
-void ClientGeoJsonSource::addPoint(const Properties& _tags, LngLat _point) {
+void ClientTileSource::addPoint(const Properties& _tags, LngLat _point) {
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
 
@@ -229,7 +229,7 @@ void ClientGeoJsonSource::addPoint(const Properties& _tags, LngLat _point) {
     m_generation++;
 }
 
-void ClientGeoJsonSource::addLine(const Properties& _tags, const Coordinates& _line) {
+void ClientTileSource::addLine(const Properties& _tags, const Coordinates& _line) {
 
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
@@ -248,7 +248,7 @@ void ClientGeoJsonSource::addLine(const Properties& _tags, const Coordinates& _l
     m_generation++;
 }
 
-void ClientGeoJsonSource::addPoly(const Properties& _tags, const std::vector<Coordinates>& _poly) {
+void ClientTileSource::addPoly(const Properties& _tags, const std::vector<Coordinates>& _poly) {
 
 
     std::lock_guard<std::mutex> lock(m_mutexStore);
@@ -339,7 +339,7 @@ struct add_geometry {
     }
 };
 
-std::shared_ptr<TileData> ClientGeoJsonSource::parse(const TileTask& _task,
+std::shared_ptr<TileData> ClientTileSource::parse(const TileTask& _task,
                                                      const MapProjection& _projection) const {
 
     std::lock_guard<std::mutex> lock(m_mutexStore);

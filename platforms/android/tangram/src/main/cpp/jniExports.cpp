@@ -1,5 +1,5 @@
 #include "androidPlatform.h"
-#include "data/clientGeoJsonSource.h"
+#include "data/clientTileSource.h"
 #include "map.h"
 
 #include <cassert>
@@ -432,7 +432,7 @@ extern "C" {
         assert(mapPtr > 0);
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
         auto sourceName = stringFromJString(jniEnv, name);
-        auto source = std::shared_ptr<Tangram::TileSource>(new Tangram::ClientGeoJsonSource(map->getPlatform(), sourceName, "", generateCentroid));
+        auto source = std::shared_ptr<Tangram::TileSource>(new Tangram::ClientTileSource(map->getPlatform(), sourceName, "", generateCentroid));
         map->addTileSource(source);
         return reinterpret_cast<jlong>(source.get());
     }
@@ -459,7 +459,7 @@ extern "C" {
         assert(mapPtr > 0);
         assert(sourcePtr > 0);
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto source = reinterpret_cast<Tangram::ClientGeoJsonSource*>(map->getPlatform(), sourcePtr);
+        auto source = reinterpret_cast<Tangram::ClientTileSource*>(map->getPlatform(), sourcePtr);
 
         size_t n_points = jniEnv->GetArrayLength(jcoordinates) / 2;
         size_t n_rings = (jrings == NULL) ? 0 : jniEnv->GetArrayLength(jrings);
@@ -515,7 +515,7 @@ extern "C" {
         assert(mapPtr > 0);
         assert(sourcePtr > 0);
         auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto source = reinterpret_cast<Tangram::ClientGeoJsonSource*>(map->getPlatform(), sourcePtr);
+        auto source = reinterpret_cast<Tangram::ClientTileSource*>(map->getPlatform(), sourcePtr);
         auto data = stringFromJString(jniEnv, geojson);
         source->addData(data);
     }

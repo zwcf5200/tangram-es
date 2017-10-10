@@ -1,6 +1,6 @@
 #include "scene/sceneLoader.h"
 
-#include "data/clientGeoJsonSource.h"
+#include "data/clientTileSource.h"
 #include "data/memoryCacheDataSource.h"
 #include "data/mbtilesDataSource.h"
 #include "data/networkDataSource.h"
@@ -1076,7 +1076,7 @@ void SceneLoader::loadSource(const std::shared_ptr<Platform>& platform, const st
         if (auto genLabelCentroidsNode = source["generate_label_centroids"]) {
             generateCentroids = true;
         }
-        sourcePtr = std::make_shared<ClientGeoJsonSource>(platform, name, url, generateCentroids,
+        sourcePtr = std::make_shared<ClientTileSource>(platform, name, url, generateCentroids,
                                                           zoomOptions);
     } else if (type == "Raster") {
         TextureOptions options = {GL_RGBA, GL_RGBA, {GL_LINEAR, GL_LINEAR}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE} };
