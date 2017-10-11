@@ -453,13 +453,12 @@ extern "C" {
         map->clearTileSource(*source, true, true);
     }
 
-    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativeAddFeature(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jlong sourcePtr,
-        jdoubleArray jcoordinates, jintArray jrings, jobjectArray jproperties) {
+    JNIEXPORT void JNICALL Java_com_mapzen_tangram_MapController_nativeSetTileSourceFeatures(JNIEnv* jniEnv, jobject obj, jlong mapPtr, jlong sourcePtr,
+        jobjectArray featureArray) {
 
         assert(mapPtr > 0);
         assert(sourcePtr > 0);
-        auto map = reinterpret_cast<Tangram::Map*>(mapPtr);
-        auto source = reinterpret_cast<Tangram::ClientTileSource*>(map->getPlatform(), sourcePtr);
+        auto source = reinterpret_cast<Tangram::ClientTileSource*>(sourcePtr);
 
         size_t n_points = jniEnv->GetArrayLength(jcoordinates) / 2;
         size_t n_rings = (jrings == NULL) ? 0 : jniEnv->GetArrayLength(jrings);

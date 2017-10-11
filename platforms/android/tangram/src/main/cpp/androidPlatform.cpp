@@ -481,4 +481,13 @@ void AndroidPlatform::sceneReadyCallback(SceneID id, const SceneError* sceneErro
     jniEnv->CallVoidMethod(m_tangramInstance, sceneReadyCallbackMID, id, jUpdateErrorStatus);
 }
 
+void AndroidPlatform::addFeatureArrayToTileSource(JNIEnv* env, jlong tileSourcePtr, jobjectArray featureArray) {
+
+    auto source = reinterpret_cast<ClientTileSource*>(tileSourcePtr);
+
+    auto length = env->GetArrayLength(featureArray);
+
+
+}
+
 } // namespace Tangram

@@ -22,6 +22,7 @@ struct LabelPickResult;
 struct FeaturePickResult;
 struct MarkerPickResult;
 class Map;
+class ClientTileSource;
 struct SceneUpdate;
 struct SceneError;
 using SceneID = int32_t;
@@ -46,6 +47,8 @@ public:
     bool startUrlRequest(const std::string& _url, UrlCallback _callback) override;
     void cancelUrlRequest(const std::string& _url) override;
     void sceneReadyCallback(SceneID id, const SceneError* error);
+
+    static void addFeatureArrayToTileSource(JNIEnv* env, jlong tileSourcePtr, jobjectArray featureArray);
 
 private:
 

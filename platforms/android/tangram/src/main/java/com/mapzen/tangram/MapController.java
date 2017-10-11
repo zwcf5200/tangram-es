@@ -10,6 +10,8 @@ import android.support.annotation.Keep;
 import android.util.DisplayMetrics;
 
 import com.mapzen.tangram.TouchInput.Gestures;
+import com.mapzen.tangram.geometry.Geometry;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -1055,16 +1057,16 @@ public class MapController implements Renderer {
         nativeClearTileSource(mapPointer, sourcePtr);
     }
 
-    void addFeature(long sourcePtr, double[] coordinates, int[] rings, String[] properties) {
+    void setTileSourceFeatures(long sourcePtr, Geometry[] features) {
         checkPointer(mapPointer);
         checkPointer(sourcePtr);
-        nativeAddFeature(mapPointer, sourcePtr, coordinates, rings, properties);
+        nativeSetTileSourceFeatures(mapPointer, sourcePtr, features);
     }
 
-    void addGeoJson(long sourcePtr, String geoJson) {
+    void setTileSourceGeoJson(long sourcePtr, String geoJson) {
         checkPointer(mapPointer);
         checkPointer(sourcePtr);
-        nativeAddGeoJson(mapPointer, sourcePtr, geoJson);
+        nativeSetTileSourceGeoJson(mapPointer, sourcePtr, geoJson);
     }
 
     void checkPointer(long ptr) {
@@ -1227,8 +1229,8 @@ public class MapController implements Renderer {
     synchronized native long nativeAddTileSource(long mapPtr, String name, boolean generateCentroid);
     synchronized native void nativeRemoveTileSource(long mapPtr, long sourcePtr);
     synchronized native void nativeClearTileSource(long mapPtr, long sourcePtr);
-    synchronized native void nativeAddFeature(long mapPtr, long sourcePtr, double[] coordinates, int[] rings, String[] properties);
-    synchronized native void nativeAddGeoJson(long mapPtr, long sourcePtr, String geoJson);
+    synchronized native void nativeSetTileSourceFeatures(long mapPtr, long sourcePtr, Geometry[] features);
+    synchronized native void nativeSetTileSourceGeoJson(long mapPtr, long sourcePtr, String geoJson);
 
     native void nativeSetDebugFlag(int flag, boolean on);
 

@@ -23,12 +23,15 @@ public:
     // http://www.iana.org/assignments/media-types/application/geo+json
     virtual const char* mimeType() const override { return "application/geo+json"; };
 
-    // Add geometry from a GeoJSON string
+    // Add pending feature data. Pending data will be represented in tiles after
+    // calling buildTiles().
     void addData(const std::string& _data);
     void addPoint(const Properties& _tags, LngLat _point);
     void addLine(const Properties& _tags, const Coordinates& _line);
     void addPoly(const Properties& _tags, const std::vector<Coordinates>& _poly);
     void generateLabelCentroidFeature();
+
+    void buildTiles();
 
     virtual void loadTileData(std::shared_ptr<TileTask> _task, TileTaskCb _cb) override;
     std::shared_ptr<TileTask> createTask(TileID _tileId, int _subTask) override;
